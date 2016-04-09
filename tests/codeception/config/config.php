@@ -4,17 +4,17 @@
  */
 return [
     'language' => 'en-US',
-    'controllerMap' => [
+    /*'controllerMap' => [
         'fixture' => [
             'class' => 'yii\faker\FixtureController',
             'fixtureDataPath' => '@tests/codeception/fixtures',
             'templatePath' => '@tests/codeception/templates',
             'namespace' => 'tests\codeception\fixtures',
         ],
-    ],
+    ],*/
     'components' => [
         'db' => [
-            'dsn' => 'mysql:host=localhost;dbname=yii2_basic_tests',
+            'dsn' => 'mysql:host=localhost;dbname=event-app-tests',
         ],
         'mailer' => [
             'useFileTransport' => true,
@@ -22,5 +22,12 @@ return [
         'urlManager' => [
             'showScriptName' => true,
         ],
+        'cache' => [
+            'class' => 'yii\caching\FileCache',
+        ],
+        /*'user' => [
+            'identityClass' => 'app\models\User',
+            'enableAutoLogin' => true,
+        ],*/
     ],
 ];

@@ -2,12 +2,14 @@
 
 namespace tests\codeception\unit\models;
 
+use tests\unit\fixtures\LoginFormFixture;
+use tests\unit\fixtures\UserFixture;
 use Yii;
 use yii\codeception\TestCase;
-use app\models\LoginForm;
+use app\models\form\LoginForm;
 use Codeception\Specify;
 
-class LoginFormTest extends TestCase
+class LoginFormT33es extends TestCase
 {
     use Specify;
 
@@ -19,7 +21,7 @@ class LoginFormTest extends TestCase
 
     public function testLoginNoUser()
     {
-        $model = new LoginForm([
+        $model = new LoginFormT33es([
             'username' => 'not_existing_username',
             'password' => 'not_existing_password',
         ]);
@@ -32,8 +34,8 @@ class LoginFormTest extends TestCase
 
     public function testLoginWrongPassword()
     {
-        $model = new LoginForm([
-            'username' => 'demo',
+        $model = new LoginFormT33es([
+            'username' => 'adminTest',
             'password' => 'wrong_password',
         ]);
 
@@ -46,9 +48,9 @@ class LoginFormTest extends TestCase
 
     public function testLoginCorrect()
     {
-        $model = new LoginForm([
-            'username' => 'demo',
-            'password' => 'demo',
+        $model = new LoginFormT33es([
+            'username' => 'admin',
+            'password' => '123456',
         ]);
 
         $this->specify('user should be able to login with correct credentials', function () use ($model) {
@@ -57,5 +59,4 @@ class LoginFormTest extends TestCase
             expect('user should be logged in', Yii::$app->user->isGuest)->false();
         });
     }
-
 }

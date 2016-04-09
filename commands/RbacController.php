@@ -1,5 +1,5 @@
 <?php
-namespace console\controllers;
+namespace app\commands;
 
 use app\models\User;
 use Yii;
@@ -34,5 +34,10 @@ class RbacController extends Controller
         }
 
         Console::output('Success! RBAC roles has been added.');
+    }
+
+    public function createUsers()
+    {
+
     }
 } 
