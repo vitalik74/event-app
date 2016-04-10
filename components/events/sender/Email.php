@@ -1,6 +1,6 @@
 <?php
 
-namespace components\events\sender;
+namespace app\components\events\sender;
 
 
 use components\events\BaseEvent;

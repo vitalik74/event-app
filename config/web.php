@@ -38,7 +38,7 @@ $config = [
             ],
         ],
         'db' => require(__DIR__ . '/db.php'),
-        /*'urlManager' => [
+        'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'enableStrictParsing' => false,
@@ -48,7 +48,23 @@ $config = [
                 '<controller:\w+>/<action:\w+>' => '<controller>/<action>',
                 'defaultRoute' => 'site/index',
             ],
-        ],*/
+        ],
+        'event' => [
+            'class' => 'app\components\events\EventFactory',
+            'modelsNamespace' => [
+                'app\models',
+                //'app\controllers'
+            ],
+            'findModelsRecursive' => false,
+            'startCustomEventName' => 'EVENT_CUSTOM',
+            'executeModels' => [
+                'app\models\Article' => [
+                    'EVENT_CUSTOM_SEND_USERS_OFF', 'EVENT_CUSTOM_SEND_USERS_OFF2'
+                ],
+                'app\models\User'
+            ],
+            'modelEventClass' => 'app\models\Event'
+        ]
     ],
     'params' => $params,
 ];

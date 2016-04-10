@@ -3,7 +3,7 @@ use yii\web\View;
 
 /** @var $this View */
 
-namespace components\events\sender;
+namespace app\components\events\sender;
 
 
 interface SenderInterface

@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use app\components\events\EventFactory;
 use Yii;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "article".
@@ -17,14 +19,36 @@ use Yii;
  *
  * @property User $user
  */
-class Article extends \yii\db\ActiveRecord
+class Article extends ActiveRecord
 {
+    const EVENT_CUSTOM_SEND_USERS = 'sendUsers';
+    const EVENT_CUSTOM_SEND_USERS_OFF = 'sendUsersOff';
+    const EVENT_CUSTOM_SEND_USERS_OFF2 = 'sendUsersOff2';
+    const EVENT_CUSTOM_SEND_USERS_OFF3 = 'sendUsersOff3';
+
+
     /**
      * @inheritdoc
      */
     public static function tableName()
     {
         return 'article';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function init()
+    {
+        /** @var EventFactory $event */
+        $event = Yii::$app->event;
+
+        $event->bindDefaultEvents();
+        //$event->bind($this);// bind default events
+        $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_OFF);
+        $event->unbind($this, static::EVENT_CUSTOM_SEND_USERS_OFF3);
+
+        parent::init();
     }
 
     /**

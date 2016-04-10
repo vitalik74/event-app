@@ -1,9 +1,9 @@
 <?php
 
-namespace components\events\sender;
+namespace app\components\events\sender;
 
 
-use components\events\BaseEvent;
+use app\components\events\BaseEvent;
 
 class Browser extends BaseEvent implements SenderInterface
 {

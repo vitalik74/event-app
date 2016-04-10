@@ -2,9 +2,12 @@
 
 namespace app\controllers;
 
+use app\components\events\EventFactory;
+use app\models\User;
 use Yii;
 use app\models\Event;
 use app\models\search\EventSearch;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -55,6 +58,9 @@ class EventController extends BaseController
         } else {
             return $this->render('create', [
                 'model' => $model,
+                'users' => $this->getUsers(),
+                'typeEvents' => $this->getTypeEvents(),
+                'events' => $this->getEvents()
             ]);
         }
     }
@@ -74,6 +80,9 @@ class EventController extends BaseController
         } else {
             return $this->render('update', [
                 'model' => $model,
+                'users' => $this->getUsers(),
+                'typeEvents' => $this->getTypeEvents(),
+                'events' => $this->getEvents()
             ]);
         }
     }
@@ -105,5 +114,34 @@ class EventController extends BaseController
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+
+    /**
+     * @return array
+     */
+    protected function getUsers()
+    {
+        return ArrayHelper::map(User::find()->all(), 'id', 'username');
+    }
+
+    /**
+     * @return array
+     */
+    protected function getTypeEvents()
+    {
+        return $this->getEvent()->getTypeEvents();
+    }
+
+    /**
+     * @return EventFactory
+     */
+    protected function getEvent()
+    {
+        return Yii::$app->event;
+    }
+
+    protected function getEvents()
+    {
+        return $this->getEvent()->getEventsFromModels();
     }
 }

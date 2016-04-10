@@ -22,7 +22,7 @@ class BaseController extends Controller
                     'delete' => ['POST'],
                 ],
             ],
-            'access' => [
+            /*'access' => [
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
@@ -30,7 +30,7 @@ class BaseController extends Controller
                         'roles' => [User::ROLE_ADMINISTRATOR],
                     ],
                 ],
-            ],
+            ],*/
         ];
     }
 }

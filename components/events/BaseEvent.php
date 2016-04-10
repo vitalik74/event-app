@@ -1,6 +1,6 @@
 <?php
 
-namespace components\events;
+namespace app\components\events;
 
 
 use components\events\sender\Error;
