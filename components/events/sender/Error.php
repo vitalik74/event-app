@@ -3,7 +3,7 @@
 namespace app\components\events\sender;
 
 
-use components\events\BaseEvent;
+use app\components\events\BaseEvent;
 use Yii;
 
 class Error extends BaseEvent implements SenderInterface

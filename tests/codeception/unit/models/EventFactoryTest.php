@@ -3,7 +3,7 @@
 namespace tests\codeception\unit\models;
 
 
-use app\components\events\EventFactory;
+use app\components\events\Event;
 use yii\codeception\TestCase;
 use Codeception\Specify;
 
@@ -14,7 +14,7 @@ class EventFactoryTest extends TestCase
 
     public function testInit()
     {
-        $event = new EventFactory([
+        $event = new Event([
             'app\models'
         ]);
 

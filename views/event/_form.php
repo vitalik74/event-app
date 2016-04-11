@@ -1,6 +1,6 @@
 <?php
 
-use app\components\events\EventFactory;
+use app\components\events\Event;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 

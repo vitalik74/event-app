@@ -3,7 +3,7 @@
 namespace app\components\events\sender;
 
 
-use components\events\BaseEvent;
+use app\components\events\BaseEvent;
 use Yii;
 
 class Email extends BaseEvent implements SenderInterface

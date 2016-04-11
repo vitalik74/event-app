@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-use app\components\events\EventFactory;
+
 use Yii;
 use yii\db\ActiveRecord;
 
@@ -22,9 +22,10 @@ use yii\db\ActiveRecord;
 class Article extends ActiveRecord
 {
     const EVENT_CUSTOM_SEND_USERS = 'sendUsers';
-    const EVENT_CUSTOM_SEND_USERS_OFF = 'sendUsersOff';
-    const EVENT_CUSTOM_SEND_USERS_OFF2 = 'sendUsersOff2';
-    const EVENT_CUSTOM_SEND_USERS_OFF3 = 'sendUsersOff3';
+    const EVENT_CUSTOM_SEND_USERS_WITH_PARAM = 'sendUsersParam';
+    const EVENT_CUSTOM_SEND_USERS_WITH_MODELS = 'sendUsersModels';
+    const EVENT_CUSTOM_SEND_USERS_CLOSURE = 'sendUsersClosure';
+    const EVENT_CUSTOM_SEND_USERS_CLOSURE2 = 'sendUsersClosure2';
 
 
     /**
@@ -40,16 +41,37 @@ class Article extends ActiveRecord
      */
     public function init()
     {
-        /** @var EventFactory $event */
-        $event = Yii::$app->event;
+        $event = $this->getEvent();
 
-        $event->bindDefaultEvents();
-        //$event->bind($this);// bind default events
-        $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_OFF);
-        $event->unbind($this, static::EVENT_CUSTOM_SEND_USERS_OFF3);
+        $event->bind($this);// bind default events
+        $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_WITH_PARAM, ['where' => ['user_id' => 1]]);
+        $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_WITH_MODELS, ['models' => ['user']]);
+        $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_CLOSURE, function () {
+
+        });
 
         parent::init();
     }
+
+    /**
+     * @return \app\components\events\Event
+     */
+    protected function getEvent()
+    {
+        /** @var \app\components\events\Event $event */
+        return Yii::$app->event;
+    }
+
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+
+        $event = $this->getEvent();
+        $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_CLOSURE2, function () {
+
+        });
+    }
+
 
     /**
      * @inheritdoc

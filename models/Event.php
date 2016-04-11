@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\components\events\EventModelInterface;
 use Yii;
 use yii\db\ActiveRecord;
 
@@ -18,7 +19,7 @@ use yii\db\ActiveRecord;
  *
  * @property User $user
  */
-class Event extends ActiveRecord
+class Event extends ActiveRecord implements EventModelInterface
 {
     /**
      * @inheritdoc
@@ -66,5 +67,29 @@ class Event extends ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeField()
+    {
+        return 'type';
+    }
+
+    /**
+     * @return string
+     */
+    public function getEventField()
+    {
+        return 'event';
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserIdField()
+    {
+        return 'user_id';
     }
 }

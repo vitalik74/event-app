@@ -2,12 +2,9 @@
 
 namespace app\components\events;
 
-
-use components\events\sender\Error;
-use yii\base\Event;
 use yii\base\Exception;
 
-class BaseEvent extends Event
+class BaseEvent extends \yii\base\Event
 {
     /**
      * Error handler
@@ -37,7 +34,7 @@ class BaseEvent extends Event
     {
         parent::init();
 
-        self::on(EventFactory::className(), EventFactory::EVENT_ERROR, '', $this->data);
+        self::on(Event::className(), Event::TYPE_EVENT_ERROR, '', $this->data);
     }
 
     /**
@@ -47,6 +44,6 @@ class BaseEvent extends Event
     public function sendError(\Exception $e)
     {
         $this->error = $e;
-        self::trigger(EventFactory::className(), EventFactory::EVENT_ERROR, $this);
+        self::trigger(Event::className(), Event::TYPE_EVENT_ERROR, $this);
     }
 }

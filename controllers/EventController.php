@@ -2,7 +2,6 @@
 
 namespace app\controllers;
 
-use app\components\events\EventFactory;
 use app\models\User;
 use Yii;
 use app\models\Event;
@@ -133,7 +132,7 @@ class EventController extends BaseController
     }
 
     /**
-     * @return EventFactory
+     * @return Event
      */
     protected function getEvent()
     {

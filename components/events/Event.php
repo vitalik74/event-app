@@ -3,6 +3,7 @@
 namespace app\components\events;
 
 
+use app\components\events\sender\SenderFactory;
 use ReflectionClass;
 use Yii;
 use yii\base\Component;
@@ -14,12 +15,10 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\FileHelper;
 use yii\helpers\StringHelper;
 
-class EventFactory extends Object
+class Event extends Object
 {
     const TYPE_EVENT_EMAIL = 'email';
     const TYPE_EVENT_BROWSER = 'browser';
-    const TYPE_EVENT_SMS = 'sms';
-    const TYPE_EVENT_GOD = 'God';
     const TYPE_EVENT_ERROR = 'error';
 
     const GROUP_EVENT_DEFAULT = 'defaultEvents';
@@ -33,7 +32,7 @@ class EventFactory extends Object
 
     /**
      * Model event from AR
-     * @var string
+     * @var ActiveRecord
      */
     public $modelEventClass;
 
@@ -65,10 +64,26 @@ class EventFactory extends Object
     public $startCustomEventName = 'EVENT_CUSTOM';
 
     /**
+     * @var string
+     */
+    public $classNameKeySeparator = '||';
+
+    /**
      * List of all events from models
      * @var array
      */
     private $_eventsFromModels = [];
+
+    /**
+     * Instance of event model
+     * @var EventModelInterface|ActiveRecord
+     */
+    private $_modelEvent;
+
+    /**
+     * @var array
+     */
+    private $_modelsEvents;
 
 
     /**
@@ -78,7 +93,14 @@ class EventFactory extends Object
     {
         $this->checkConfig(['modelEventClass', 'modelsNamespace']);
 
+        $reflection = new ReflectionClass($this->modelEventClass);
+
+        if (!$reflection->implementsInterface(__NAMESPACE__ . '\EventModelInterface')) {
+            throw new InvalidConfigException('The "modelEventClass" property must be implements from "EventModelInterface"');
+        }
+
         $this->findEvents();
+        $this->_modelEvent = new $this->modelEventClass;
     }
     
     /**
@@ -98,7 +120,7 @@ class EventFactory extends Object
     {
         return $this->_eventsFromModels;
     }
-// дефолтные ивенты (из AR),
+//+ дефолтные ивенты (из AR),
 // ивенты той же модели но по условию (если status=0),
 // ивенты которые завязаны на несколько моделей (модели просто с перечислением) + дефолтный ивент из AR,
 // ивенты которые через анонимную функцию + дефолтный ивент из AR,
@@ -107,11 +129,27 @@ class EventFactory extends Object
     /**
      * Bind event
      * @param Component $class
-     * @param string|\Closure|array $event Yii2 default event. Support array events
+     * @param null|string $event Yii2 default event. Support array events
+     * @param null|\Closure|array $data Data for passed to event
      */
-    public function bind(Component $class, $event)
+    public function bind(Component $class, $event = null, $data = null)
     {
-        $class->on($event, [$this, 'create']);
+        if ($event == null) {
+            $this->bindDefaultEvents($class);
+        } else {
+            if (is_array($event)) {
+                foreach ($event as $value) {
+                    $this->bind($class, $value, $data);
+                }
+            } else {
+                $availableEvents = ArrayHelper::map($this->findEventModels(), $this->_modelEvent->getEventField(), $this->_modelEvent->getTypeField());
+                $key = get_class($class) . $this->classNameKeySeparator . $event;
+
+                if (in_array($key, array_keys($availableEvents))) {
+                    $class->on($event, [$this, 'create'], ArrayHelper::merge(['type' => $availableEvents[$key]], ['data' => $data]));
+                }
+            }
+        }
     }
 
     /**
@@ -119,17 +157,28 @@ class EventFactory extends Object
      */
     public function bindDefaultEvents(Component $class)
     {
-        foreach ($this->getEventsFromModels()[static::GROUP_EVENT_DEFAULT] as $event) {
-            $this->bind($class, $event);
+        $events = isset($this->getEventsFromModels()[get_class($class)][static::GROUP_EVENT_DEFAULT]) ? $this->getEventsFromModels()[get_class($class)][static::GROUP_EVENT_DEFAULT] : [];
+
+        $events = ArrayHelper::getColumn($events, function ($event) use ($class) {
+            return get_class($class) . $this->classNameKeySeparator . $event;
+        });
+
+        /** @var ActiveRecord|EventModelInterface $event */
+        foreach ($this->findEventModels([$this->_modelEvent->getEventField() => array_keys($events)]) as $event) {
+            $eventName = $this->getEventValue($event->{$event->getEventField()});
+
+            if ($eventName !== null) {
+                $this->bind($class, $eventName, $event->{$event->getTypeField()});
+            }
         }
     }
 
     /**
      * Unbind event
      * @param Component $class
-     * @param bool|true $defaultEvents
+     * @param string $event
      */
-    public function unbind(Component $class, $defaultEvents = true)
+    public function unbind(Component $class, $event)
     {
 
     }
@@ -160,7 +209,7 @@ class EventFactory extends Object
             class_implements($class, true)
         );
 
-        return $this->events($classes, $this->startDefaultEventName);
+        return $this->events($classes, $class, $this->startDefaultEventName);
     }
 
     /**
@@ -169,15 +218,16 @@ class EventFactory extends Object
      */
     protected function getCustomEvents($class)
     {
-        return $this->events([$class], $this->startCustomEventName);
+        return $this->events([$class], $class, $this->startCustomEventName);
     }
 
     /**
      * @param array $classes
+     * @param $currentClass
      * @param $startEventName
      * @return array
      */
-    protected function events(array $classes, $startEventName)
+    protected function events(array $classes, $currentClass, $startEventName)
     {
         $events = [];
 
@@ -186,7 +236,7 @@ class EventFactory extends Object
 
             foreach ($reflection->getConstants() as $constant => $value) {
                 if (StringHelper::startsWith($constant, $startEventName)) {
-                    $events[$constant] = $value;
+                    $events[$constant] = $currentClass . $this->classNameKeySeparator . $value;
                 }
             }
         }
@@ -194,14 +244,33 @@ class EventFactory extends Object
         return array_flip($events);
     }
 
-    public function create()
+    public function create(\yii\base\Event $event)
     {
-        
+        $data = $event->data;
+
+        if ($data['type'] !== null) {
+            SenderFactory::create($data['type']);
+        }
     }
 
-    protected function findEventModels()
+    /**
+     * Events from DB
+     * @param array $where
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    protected function findEventModels($where = [])
     {
-        
+        $class = $this->modelEventClass;
+
+        if (!empty($where)) {
+            return $class::find()->where($where)->all();
+        }
+
+        if ($this->_modelsEvents == null) {
+            $this->_modelsEvents = $class::find()->all();
+        }
+
+        return $this->_modelsEvents;
     }
 
     protected function checkConfig(array $properties)
@@ -211,5 +280,17 @@ class EventFactory extends Object
                 throw new InvalidConfigException('The "' . $property . '" property must be set.');
             }
         }
+    }
+
+    /**
+     * Explode event name
+     * @param $eventName
+     * @return null|string
+     */
+    protected function getEventValue($eventName)
+    {
+        $tmp = explode($this->classNameKeySeparator, $eventName);
+
+        return isset($tmp[1]) ? $tmp[1] : null;
     }
 }

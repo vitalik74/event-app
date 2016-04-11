@@ -50,7 +50,7 @@ $config = [
             ],
         ],
         'event' => [
-            'class' => 'app\components\events\EventFactory',
+            'class' => 'app\components\events\Event',
             'modelsNamespace' => [
                 'app\models',
                 //'app\controllers'
@@ -63,7 +63,7 @@ $config = [
                 ],
                 'app\models\User'
             ],
-            'modelEventClass' => 'app\models\Event'
+            'modelEventClass' => 'app\models\Event',
         ]
     ],
     'params' => $params,
