@@ -92,4 +92,20 @@ class Event extends ActiveRecord implements EventModelInterface
     {
         return 'user_id';
     }
+
+    /**
+     * @return string
+     */
+    public function getTitleField()
+    {
+        return 'title';
+    }
+
+    /**
+     * @return string
+     */
+    public function getTextField()
+    {
+        return 'text';
+    }
 }

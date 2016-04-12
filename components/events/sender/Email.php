@@ -3,10 +3,9 @@
 namespace app\components\events\sender;
 
 
-use app\components\events\BaseEvent;
 use Yii;
 
-class Email extends BaseEvent implements SenderInterface
+class Email extends BaseSender implements SenderInterface
 {
 
     /**
@@ -16,13 +15,20 @@ class Email extends BaseEvent implements SenderInterface
     public function send()
     {
         try {
-            $eventModel = $this->getEvent($this->name);
+            $eventModel = $this->eventModel;
+            $title = $this->replaceTitle('id статьи {articleId}
+
+
+короткий текст статьи {articleShortText}');
+
+            $title = $this->replaceTitle($eventModel->{$eventModel->getTitleField()});
+            $text = $this->replaceText($eventModel->{$eventModel->getTextField()});
 
             Yii::$app->mailer->compose()
                 ->setFrom(Yii::$app->params['fromEmail'])
                 ->setTo(Yii::$app->params['adminEmail'])
-                ->setSubject('Шеф, все пропало!')
-                ->setHtmlBody($this->config['msgText'])
+                ->setSubject($title)
+                ->setHtmlBody($text)
                 ->send();
         } catch (\Exception $e) {
             $this->sendError($e);

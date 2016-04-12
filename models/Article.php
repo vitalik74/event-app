@@ -47,7 +47,9 @@ class Article extends ActiveRecord
         $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_WITH_PARAM, ['where' => ['user_id' => 1]]);
         $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_WITH_MODELS, ['models' => ['user']]);
         $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_CLOSURE, function () {
-
+            return [
+                'test' => 'Test variable',
+            ];
         });
 
         parent::init();
@@ -62,6 +64,9 @@ class Article extends ActiveRecord
         return Yii::$app->event;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
@@ -71,7 +76,6 @@ class Article extends ActiveRecord
 
         });
     }
-
 
     /**
      * @inheritdoc

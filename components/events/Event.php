@@ -19,7 +19,6 @@ class Event extends Object
 {
     const TYPE_EVENT_EMAIL = 'email';
     const TYPE_EVENT_BROWSER = 'browser';
-    const TYPE_EVENT_ERROR = 'error';
 
     const GROUP_EVENT_DEFAULT = 'defaultEvents';
     const GROUP_EVENT_CUSTOM = 'customEvents';
@@ -142,12 +141,54 @@ class Event extends Object
                     $this->bind($class, $value, $data);
                 }
             } else {
-                $availableEvents = ArrayHelper::map($this->findEventModels(), $this->_modelEvent->getEventField(), $this->_modelEvent->getTypeField());
+                $availableEvents = ArrayHelper::map($this->findEventModels(), $this->_modelEvent->getEventField(), function ($model) {
+                    return $model;
+                });
                 $key = get_class($class) . $this->classNameKeySeparator . $event;
 
-                if (in_array($key, array_keys($availableEvents))) {
-                    $class->on($event, [$this, 'create'], ArrayHelper::merge(['type' => $availableEvents[$key]], ['data' => $data]));
+                if (ArrayHelper::isIn($key, array_keys($availableEvents))) {
+                    $data = ArrayHelper::merge([
+                        'type' => $availableEvents[$key]->{$this->_modelEvent->getTypeField()}
+                    ], [
+                        'data' => $data,
+                        'sender' => $class,
+                        'event' => $availableEvents[$key]
+                    ]);
+                    $class->on($event, [$this, 'create'], $data);
                 }
+            }
+        }
+    }
+
+    /**
+     * Unbind event
+     * @param Component $class
+     * @param string $event
+     */
+    public function unbind(Component $class, $event)
+    {
+        $class->off($event);
+    }
+
+    /**
+     * @param \yii\base\Event $event
+     * @throws InvalidConfigException
+     */
+    public function create(\yii\base\Event $event)
+    {
+        $data = $event->data;
+        $sender = $data['sender'];
+        $type = $data['type'];
+        $event = $data['event'];
+
+        if ($data['type'] !== null) {
+            if ($data['data'] instanceof \Closure) {
+                $data = $data['data']();
+                SenderFactory::create($sender, $event, $type, $data);
+            } elseif (!empty($data['data']['where']) && $this->checkCondition($sender, $data['data']['where'])) {
+                SenderFactory::create($sender, $event, $type);
+            } else {
+                SenderFactory::create($sender, $event, $type, $data['data']);
             }
         }
     }
@@ -171,16 +212,6 @@ class Event extends Object
                 $this->bind($class, $eventName, $event->{$event->getTypeField()});
             }
         }
-    }
-
-    /**
-     * Unbind event
-     * @param Component $class
-     * @param string $event
-     */
-    public function unbind(Component $class, $event)
-    {
-
     }
 
     protected function findEvents()
@@ -244,13 +275,20 @@ class Event extends Object
         return array_flip($events);
     }
 
-    public function create(\yii\base\Event $event)
+    /**
+     * @param Component $sender
+     * @param array $where
+     * @return bool
+     */
+    protected function checkCondition(Component $sender, array $where)
     {
-        $data = $event->data;
-
-        if ($data['type'] !== null) {
-            SenderFactory::create($data['type']);
+        foreach ($where as $attribute => $value) {
+            if ($sender->{$attribute} !== $value) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     /**

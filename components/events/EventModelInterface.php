@@ -22,4 +22,14 @@ interface EventModelInterface
      * @return string
      */
     public function getUserIdField();
+
+    /**
+     * @return string
+     */
+    public function getTitleField();
+
+    /**
+     * @return string
+     */
+    public function getTextField();
 }
