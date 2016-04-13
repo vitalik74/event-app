@@ -38,6 +38,9 @@ $config = [
             ],
         ],
         'db' => require(__DIR__ . '/db.php'),
+        'authManager' => [
+            'class' => 'yii\rbac\DbManager',
+        ],
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
@@ -55,6 +58,7 @@ $config = [
                 'app\models',
                 //'app\controllers'
             ],
+            'eventsNamespace' => 'app\events',
             'findModelsRecursive' => false,
             'startCustomEventName' => 'EVENT_CUSTOM',
             'executeModels' => [

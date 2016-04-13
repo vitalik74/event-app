@@ -3,6 +3,7 @@
 /* @var $this \yii\web\View */
 /* @var $content string */
 
+use app\models\User;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
@@ -26,6 +27,8 @@ AppAsset::register($this);
 
 <div class="wrap">
     <?php
+    $authManager = Yii::$app->authManager;
+
     NavBar::begin([
         'brandLabel' => 'My Company',
         'brandUrl' => Yii::$app->homeUrl,
@@ -37,8 +40,8 @@ AppAsset::register($this);
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
             ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'Article', 'url' => ['/article/index']],
-            ['label' => 'Event', 'url' => ['/event/index']],
+            ['label' => 'Article', 'url' => ['/article/index'], 'visible' => $authManager->checkAccess(Yii::$app->user->id, User::ROLE_ADMINISTRATOR)],
+            ['label' => 'Event', 'url' => ['/event/index'], 'visible' => $authManager->checkAccess(Yii::$app->user->id, User::ROLE_ADMINISTRATOR)],
             Yii::$app->user->isGuest ? (
                 ['label' => 'Login', 'url' => ['/site/login']]
             ) : (

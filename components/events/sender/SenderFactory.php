@@ -15,22 +15,21 @@ class SenderFactory extends Object
     /**
      * @param Component $sender
      * @param EventModelInterface $eventModel
-     * @param $name
+     * @param $eventClass
      * @param null $data
      * @throws InvalidConfigException
      */
-    public static function create(Component $sender, EventModelInterface $eventModel, $name, $data = null)
+    public static function create(Component $sender, EventModelInterface $eventModel, $eventClass, $data = null)
     {
-        $class = __NAMESPACE__ . '\\' . ucfirst($name);
-        $reflection = new ReflectionClass($class);
+        $reflection = new ReflectionClass($eventClass);
 
         if (!$reflection->implementsInterface(__NAMESPACE__ . '\SenderInterface')) {
-            throw new InvalidConfigException('The "' . $class . '" must be implements from "SenderInterface"');
+            throw new InvalidConfigException('The "' . $eventClass . '" must be implements from "SenderInterface"');
         }
 
         /** @var SenderInterface $sender */
-        $sender = new $class([
-            'name' => $name,
+        $sender = new $eventClass([
+            'name' => strtolower($reflection->getName()),
             'sender' => $sender,
             'data' => $data,
             'eventModel' => $eventModel

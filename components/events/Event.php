@@ -30,6 +30,12 @@ class Event extends Object
     public $modelsNamespace = [];
 
     /**
+     * Namespaces where find objects for run event
+     * @var string
+     */
+    public $eventsNamespace = '';
+
+    /**
      * Model event from AR
      * @var ActiveRecord
      */
@@ -90,7 +96,7 @@ class Event extends Object
      */
     public function init()
     {
-        $this->checkConfig(['modelEventClass', 'modelsNamespace']);
+        $this->checkConfig(['modelEventClass', 'modelsNamespace', 'eventsNamespace']);
 
         $reflection = new ReflectionClass($this->modelEventClass);
 
@@ -109,7 +115,9 @@ class Event extends Object
     {
         $reflection = new ReflectionClass(__CLASS__);
 
-        return array_flip($reflection->getConstants());
+        return array_filter(array_flip($reflection->getConstants()), function ($data) {
+            return strpos($data, 'TYPE_EVENT_') !== false ? true : false;
+        });
     }
 
     /**
@@ -120,7 +128,7 @@ class Event extends Object
         return $this->_eventsFromModels;
     }
 //+ дефолтные ивенты (из AR),
-// ивенты той же модели но по условию (если status=0),
+//+ ивенты той же модели но по условию (если status=0),
 // ивенты которые завязаны на несколько моделей (модели просто с перечислением) + дефолтный ивент из AR,
 // ивенты которые через анонимную функцию + дефолтный ивент из AR,
 // отключение какие-от событий в классе
@@ -178,17 +186,17 @@ class Event extends Object
     {
         $data = $event->data;
         $sender = $data['sender'];
-        $type = $data['type'];
+        $eventClass = $this->eventsNamespace . '//' . ucfirst($data['type']);
         $event = $data['event'];
 
         if ($data['type'] !== null) {
             if ($data['data'] instanceof \Closure) {
                 $data = $data['data']();
-                SenderFactory::create($sender, $event, $type, $data);
+                SenderFactory::create($sender, $event, $eventClass, $data);
             } elseif (!empty($data['data']['where']) && $this->checkCondition($sender, $data['data']['where'])) {
-                SenderFactory::create($sender, $event, $type);
+                SenderFactory::create($sender, $event, $eventClass);
             } else {
-                SenderFactory::create($sender, $event, $type, $data['data']);
+                SenderFactory::create($sender, $event, $eventClass, $data['data']);
             }
         }
     }

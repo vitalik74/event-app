@@ -1,8 +1,10 @@
 <?php
 
-namespace app\components\events\sender;
+namespace app\events;
 
 
+use app\components\events\sender\BaseSender;
+use app\components\events\sender\SenderInterface;
 use Yii;
 
 class Email extends BaseSender implements SenderInterface
