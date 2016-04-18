@@ -32,4 +32,9 @@ interface EventModelInterface
      * @return string
      */
     public function getTextField();
+
+    /**
+     * @return string
+     */
+    public function getDefaultEventField();
 }

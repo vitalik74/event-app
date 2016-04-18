@@ -29,6 +29,9 @@ class User extends ActiveRecord implements IdentityInterface
     const ROLE_USER = 'user';
     const ROLE_ADMINISTRATOR = 'administrator';
 
+    const EVENT_CUSTOM_SEND_USERS = 'sendUsers';
+
+
     /**
      * @inheritdoc
      */

@@ -10,6 +10,27 @@ use yii\widgets\ActiveForm;
 /* @var $events [] */
 /* @var $typeEvents [] */
 /* @var $form yii\widgets\ActiveForm */
+/* @var $defaultEvent [] */
+
+$js = <<<JS
+    $('#event-event').on('change', function () {
+        var defaultEvent = $('.default-event'),
+            selected = $(':selected', this),
+            val = selected.closest('optgroup').attr('label');
+
+        if (val == 'customEvents') {
+            defaultEvent.show();
+        } else {
+            defaultEvent.hide();
+        }
+
+        $.get('/event/get-fields?event=' + $(this).val(), function (data) {
+            $('.alert-event').html(data).show();
+        });
+    });
+JS;
+
+$this->registerJs($js);
 ?>
 
 <div class="event-form">
@@ -20,13 +41,20 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'event')->dropDownList($events, ['prompt' => 'Выберите']) ?>
 
+    <?= $form->field($model, 'default_event', ['options' => ['class' => 'default-event']])->dropDownList($defaultEvent, ['multiple' => 'multiple', 'size' => '10']) ?>
+
     <?= $form->field($model, 'user_id')->dropDownList($users, ['prompt' => 'Всем']) ?>
+
+    <div class="alert alert-success alert-event">
+
+        asd
+    </div>
 
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'text')->textarea(['rows' => 6]) ?>
 
-    <?= $form->field($model, 'type')->dropDownList($typeEvents, ['prompt' => 'Выберите']) ?>
+    <?= $form->field($model, 'type')->dropDownList($typeEvents, ['prompt' => 'Выберите', 'multiple' => 'multiple', 'size' => '3']) ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

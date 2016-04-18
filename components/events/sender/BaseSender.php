@@ -6,6 +6,7 @@ namespace app\components\events\sender;
 use app\components\events\Event;
 use app\components\events\EventModelInterface;
 
+use Yii;
 use yii\base\Component;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
@@ -38,16 +39,6 @@ class BaseSender extends Component
      */
     public $name;
 
-    /**
-     * Error handler
-     * @var \Exception
-     */
-    protected $error;
-
-    /**
-     * @inheritdoc
-     */
-
 
     /**
      * Send error
@@ -57,6 +48,12 @@ class BaseSender extends Component
     {
         $this->error = $e;
         // send error to email or some else
+        Yii::$app->mailer->compose()
+            ->setFrom(Yii::$app->params['fromEmail'])
+            ->setTo(Yii::$app->params['adminEmail'])
+            ->setSubject('Шеф, все пропало!')
+            ->setHtmlBody($e->getMessage())
+            ->send();
     }
 
     /**
@@ -90,13 +87,13 @@ class BaseSender extends Component
 
     /**
      * @param $str
-     * @return mixed
+     * @return array
      */
     protected function getVariableFromText($str)
     {
         preg_match_all('/{(.*?)}/is', $str, $match);
 
-        return $match[0];
+        return isset($match[0]) ? $match[0] : [];
     }
 
     /**
@@ -104,6 +101,22 @@ class BaseSender extends Component
      */
     protected function getValueFromModel(array $variables)
     {
+        // тут не только из модели сендера, но и зависимых моделей
+    }
 
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->replaceTitle($this->eventModel->{$this->eventModel->getTitleField()});
+    }
+
+    /**
+     * @return string
+     */
+    public function getText()
+    {
+        return $this->replaceTitle($this->eventModel->{$this->eventModel->getTextField()});
     }
 }

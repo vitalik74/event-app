@@ -2,10 +2,12 @@
 
 namespace app\controllers;
 
+use app\models\EventField;
 use app\models\User;
 use Yii;
 use app\models\Event;
 use app\models\search\EventSearch;
+use yii\data\ArrayDataProvider;
 use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -51,17 +53,23 @@ class EventController extends BaseController
     public function actionCreate()
     {
         $model = new Event();
+        $modelEventFields = new EventField();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-                'users' => $this->getUsers(),
-                'typeEvents' => $this->getTypeEvents(),
-                'events' => $this->getEvents()
-            ]);
+        if ($model->load(Yii::$app->request->post()) && $modelEventFields->load(\Yii::$app->request->post()) && $model->validate() && $modelEventFields->validate()) {
+            if ($model->save(false) && $modelEventFields->save(false)) {
+                $model->link('eventFieldRelation', $modelEventFields);
+
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
         }
+
+        return $this->render('create', [
+            'model' => $model,
+            'users' => $this->getUsers(),
+            'typeEvents' => $this->getTypeEvents(),
+            'events' => $this->getEvents(),
+            'defaultEvent' => $this->getDefaultEvent()
+        ]);
     }
 
     /**
@@ -81,7 +89,8 @@ class EventController extends BaseController
                 'model' => $model,
                 'users' => $this->getUsers(),
                 'typeEvents' => $this->getTypeEvents(),
-                'events' => $this->getEvents()
+                'events' => $this->getEvents(),
+                'defaultEvent' => $this->getDefaultEvent()
             ]);
         }
     }
@@ -132,15 +141,40 @@ class EventController extends BaseController
     }
 
     /**
-     * @return Event
+     * @return \app\components\events\Event
      */
     protected function getEvent()
     {
         return Yii::$app->event;
     }
 
+    /**
+     * @return array
+     */
     protected function getEvents()
     {
         return $this->getEvent()->getEventsFromModels();
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getDefaultEvent()
+    {
+        return $this->getEvent()->getDefaultEvents('yii\db\ActiveRecord');
+    }
+
+    public function actionGetFields($event)
+    {
+        $fields = $this->getEvent()->getFields($event);
+
+        $dataProvider = new ArrayDataProvider([
+            'allModels' => $fields,
+            'pagination' => [
+                'pageSize' => 100,
+            ],
+        ]);
+
+        return $this->renderPartial('fields', ['dataProvider' => $dataProvider]);
     }
 }

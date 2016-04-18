@@ -17,20 +17,16 @@ class Email extends BaseSender implements SenderInterface
     public function send()
     {
         try {
-            $eventModel = $this->eventModel;
             $title = $this->replaceTitle('id статьи {articleId}
 
 
 короткий текст статьи {articleShortText}');
 
-            $title = $this->replaceTitle($eventModel->{$eventModel->getTitleField()});
-            $text = $this->replaceText($eventModel->{$eventModel->getTextField()});
-
             Yii::$app->mailer->compose()
                 ->setFrom(Yii::$app->params['fromEmail'])
                 ->setTo(Yii::$app->params['adminEmail'])
-                ->setSubject($title)
-                ->setHtmlBody($text)
+                ->setSubject($this->getTitle())
+                ->setHtmlBody($this->getText())
                 ->send();
         } catch (\Exception $e) {
             $this->sendError($e);

@@ -8,6 +8,7 @@ use yii\helpers\Html;
 /* @var $users app\models\User[] */
 /* @var $typeEvents [] */
 /* @var $events [] */
+/* @var $defaultEvent [] */
 
 $this->title = 'Create Event';
 $this->params['breadcrumbs'][] = ['label' => 'Events', 'url' => ['index']];
@@ -21,7 +22,8 @@ $this->params['breadcrumbs'][] = $this->title;
         'model' => $model,
         'users' => $users,
         'typeEvents' => $typeEvents,
-        'events' => $events
+        'events' => $events,
+        'defaultEvent' => $defaultEvent
     ]) ?>
 
 </div>

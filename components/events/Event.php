@@ -90,6 +90,11 @@ class Event extends Object
      */
     private $_modelsEvents;
 
+    /**
+     * @var array
+     */
+    private $_eventsWithRelatedModels = [];
+
 
     /**
      * @inheritdoc
@@ -121,6 +126,7 @@ class Event extends Object
     }
 
     /**
+     * Events from models
      * @return array
      */
     public function getEventsFromModels()
@@ -163,8 +169,16 @@ class Event extends Object
                         'event' => $availableEvents[$key]
                     ]);
                     $class->on($event, [$this, 'create'], $data);
+                    $this->bindEventsWithRelatedModels($class, $event, $data);
                 }
             }
+        }
+    }
+
+    protected function bindEventsWithRelatedModels($class, $event, $data)
+    {
+        if (isset($data['models']) && !empty($data['models'])) {
+            $this->_eventsWithRelatedModels[$class . $this->classNameKeySeparator . $event][] = $data['models'];
         }
     }
 
@@ -186,18 +200,22 @@ class Event extends Object
     {
         $data = $event->data;
         $sender = $data['sender'];
-        $eventClass = $this->eventsNamespace . '//' . ucfirst($data['type']);
+        $eventClass = $this->eventsNamespace . '\\' . ucfirst($data['type']);
         $event = $data['event'];
 
         if ($data['type'] !== null) {
             if ($data['data'] instanceof \Closure) {
                 $data = $data['data']();
-                SenderFactory::create($sender, $event, $eventClass, $data);
+                //SenderFactory::create($sender, $event, $eventClass, $data);
             } elseif (!empty($data['data']['where']) && $this->checkCondition($sender, $data['data']['where'])) {
-                SenderFactory::create($sender, $event, $eventClass);
+                $data = '';
+                //SenderFactory::create($sender, $event, $eventClass);
             } else {
-                SenderFactory::create($sender, $event, $eventClass, $data['data']);
+                $data = $data['data'];
+                //SenderFactory::create($sender, $event, $eventClass, $data['data']);
             }
+
+            SenderFactory::create($sender, $event, $eventClass, $data);
         }
     }
 
@@ -241,7 +259,7 @@ class Event extends Object
      * @param $class
      * @return array
      */
-    protected function getDefaultEvents($class)
+    public function getDefaultEvents($class)
     {
         $classes = ArrayHelper::merge(
             class_parents($class, true),
@@ -255,7 +273,7 @@ class Event extends Object
      * @param $class
      * @return array
      */
-    protected function getCustomEvents($class)
+    public function getCustomEvents($class)
     {
         return $this->events([$class], $class, $this->startCustomEventName);
     }
@@ -274,13 +292,31 @@ class Event extends Object
             $reflection = new ReflectionClass($class);
 
             foreach ($reflection->getConstants() as $constant => $value) {
-                if (StringHelper::startsWith($constant, $startEventName)) {
+                if (StringHelper::startsWith($constant, $startEventName) && $this->checkExecuteModels($class, $constant)) {
                     $events[$constant] = $currentClass . $this->classNameKeySeparator . $value;
                 }
             }
         }
 
         return array_flip($events);
+    }
+
+    /**
+     * If
+     * @param string $class
+     * @param string $constant
+     * @return bool
+     */
+    protected function checkExecuteModels($class, $constant)
+    {
+        foreach ($this->executeModels as $key => $model) {
+            if ((is_array($model) && ArrayHelper::isIn($constant, $model))
+                || (is_string($model) && $class == $model)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -335,8 +371,73 @@ class Event extends Object
      */
     protected function getEventValue($eventName)
     {
-        $tmp = explode($this->classNameKeySeparator, $eventName);
+        $tmp = $this->explode($eventName);
 
         return isset($tmp[1]) ? $tmp[1] : null;
+    }
+
+    /**
+     * Explode event class
+     * @param $eventName
+     * @return null
+     */
+    protected function getEventClassValue($eventName)
+    {
+        $tmp = $this->explode($eventName);
+
+        return isset($tmp[0]) ? $tmp[0] : null;
+    }
+
+    /**
+     * @param $eventName
+     * @return array
+     */
+    protected function explode($eventName)
+    {
+        return explode($this->classNameKeySeparator, $eventName);
+    }
+
+    /**
+     * @param $event
+     * @return array
+     */
+    public function getFields($event)
+    {
+        $class = $this->getEventClassValue($event);
+
+        if ($class == null) {
+            return [];
+        }
+
+        /** @var Model $model */
+        $model = new $class();
+        $class = str_replace($this->modelsNamespace, '', $class);
+        $fields = [];
+
+        if (!($model instanceof Model)) {
+            return [];
+        }
+
+        foreach ($model->rules() as $rule) {
+            if (is_array($rule[0])) {
+                foreach ($rule[0] as $value) {
+                    $fields[] = $class . $this->classNameKeySeparator . $value;
+                }
+            } elseif (is_string($rule[0])) {
+                $fields[] = $class . $this->classNameKeySeparator . $rule[0];
+            }
+        }
+
+        // check in related model
+        if (ArrayHelper::isIn($event, array_keys($this->_eventsWithRelatedModels))) {
+            foreach ($this->_eventsWithRelatedModels[$event] as $relatedModel) {
+                $method = 'get' . ucfirst($relatedModel);
+                $relatedModel = new $relatedModel();
+                $model = $relatedModel->{$method};
+                $a=1;
+            }
+        }
+
+        return array_unique($fields);
     }
 }

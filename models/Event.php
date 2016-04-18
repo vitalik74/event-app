@@ -16,6 +16,7 @@ use yii\db\ActiveRecord;
  * @property string $title
  * @property string $text
  * @property string $type
+ * @property string $default_event
  *
  * @property User $user
  */
@@ -39,7 +40,8 @@ class Event extends ActiveRecord implements EventModelInterface
             [['user_id'], 'integer'],
             [['text'], 'string'],
             [['name'], 'string', 'max' => 60],
-            [['event', 'type'], 'string', 'max' => 100],
+            [['event'], 'string', 'max' => 100],
+            [['type', 'defaultEvent'], 'each', 'rule' => ['string']],
             [['title'], 'string', 'max' => 255],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];
@@ -58,6 +60,7 @@ class Event extends ActiveRecord implements EventModelInterface
             'title' => 'Title',
             'text' => 'Text',
             'type' => 'Type',
+            'defaultEvent' => 'Default Event'
         ];
     }
 
@@ -107,5 +110,18 @@ class Event extends ActiveRecord implements EventModelInterface
     public function getTextField()
     {
         return 'text';
+    }
+
+    /**
+     * @return string
+     */
+    public function getDefaultEventField()
+    {
+        return 'default_event';
+    }
+
+    public function getEventFieldRelation()
+    {
+        return $this->hasMany(EventField::className(), ['event_id' => 'id']);
     }
 }

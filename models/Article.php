@@ -22,6 +22,8 @@ use yii\db\ActiveRecord;
 class Article extends ActiveRecord
 {
     const EVENT_CUSTOM_SEND_USERS = 'sendUsers';
+    const EVENT_CUSTOM_SEND_USERS_OFF = 'off';// switch off event
+    const EVENT_CUSTOM_SEND_USERS_OFF2 = 'off2';// switch off event too
     const EVENT_CUSTOM_SEND_USERS_WITH_PARAM = 'sendUsersParam';
     const EVENT_CUSTOM_SEND_USERS_WITH_MODELS = 'sendUsersModels';
     const EVENT_CUSTOM_SEND_USERS_CLOSURE = 'sendUsersClosure';
