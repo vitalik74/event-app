@@ -1,102 +1,113 @@
-Yii 2 Basic Project Template
+Yii 2 event-test-app
 ============================
-
-Yii 2 Basic Project Template is a skeleton [Yii 2](http://www.yiiframework.com/) application best for
-rapidly creating small projects.
-
-The template contains the basic features including user login/logout and a contact page.
-It includes all commonly used configurations that would allow you to focus on adding new
-features to your application.
-
-[![Latest Stable Version](https://poser.pugx.org/yiisoft/yii2-app-basic/v/stable.png)](https://packagist.org/packages/yiisoft/yii2-app-basic)
-[![Total Downloads](https://poser.pugx.org/yiisoft/yii2-app-basic/downloads.png)](https://packagist.org/packages/yiisoft/yii2-app-basic)
-[![Build Status](https://travis-ci.org/yiisoft/yii2-app-basic.svg?branch=master)](https://travis-ci.org/yiisoft/yii2-app-basic)
-
-DIRECTORY STRUCTURE
--------------------
-
-      assets/             contains assets definition
-      commands/           contains console commands (controllers)
-      config/             contains application configurations
-      controllers/        contains Web controller classes
-      mail/               contains view files for e-mails
-      models/             contains model classes
-      runtime/            contains files generated during runtime
-      tests/              contains various tests for the basic application
-      vendor/             contains dependent 3rd-party packages
-      views/              contains view files for the Web application
-      web/                contains the entry script and Web resources
+Буду рад услышать замечания, ошибки. Писать на tsibikov_vit@mail.ru.
 
 
-
-REQUIREMENTS
-------------
-
-The minimum requirement by this project template that your Web server supports PHP 5.4.0.
+Установка
+===================
 
 
-INSTALLATION
-------------
+Структура
+=====================
+Основной класс, который отвечает за все события это `app/components/events/Event`. Подключается как компонент к Yii. Имеет ряд настроек. Пример конфига:
 
-### Install from an Archive File
+```
+'event' => [
+    'class' => 'app\components\events\Event', // сам класс
+    'modelsNamespace' => [ // какие модели мы подключаем к системе ивентов
+        'app\models',
+        //'app\controllers'
+    ],
+    'eventsNamespace' => 'app\events', // неймспейс классов отправки самих уведомлений
+    'findModelsRecursive' => false, // искать ли в подпапках классы
+    'startCustomEventName' => 'EVENT_CUSTOM', // начальное название констант, которые означают какое-то событие
+    'executeModels' => [ // не учитфываем эти модели, поддерживаетс формат 'model' => ['constant', 'constant']. 
+        'app\models\Article' => [
+            'EVENT_CUSTOM_SEND_USERS_OFF', 'EVENT_CUSTOM_SEND_USERS_OFF2'
+        ],
+        'app\models\Event', 'app\models\BrowserEvent',
+    ],
+    'modelEventClass' => 'app\models\Event',// модель текста событий из БД. Должна реализовывать интерфейс EventModelInterface
+]
+```
+ 
 
-Extract the archive file downloaded from [yiiframework.com](http://www.yiiframework.com/download/) to
-a directory named `basic` that is directly under the Web root.
+Классы отправки самих уведомлений (Email, Browser и др.) находятся `app/events`. Вынес отдельно для меньшей связанности. Наследуются от `BaseSender` и реализуют интерфейс `SenderInterface`.
 
-Set cookie validation key in `config/web.php` file to some random secret string:
+Модель AR `Event` должна реализовывать интерфейс `EventModelInterface`.
+ 
 
-```php
-'request' => [
-    // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-    'cookieValidationKey' => '<secret random string goes here>',
-],
+Возможности
+===================
+Существует 4 способа подключения событий (перед этим надо объявить константы события с первоначальным названием как указано в конфиге (по умолчанию: EVENT_CUSTOM)):
+```
+/**
+ * @return \app\components\events\Event
+ */
+protected function getEvent()
+{
+    /** @var \app\components\events\Event $event */
+    return Yii::$app->event;
+}
+    
+/**
+ * @inheritdoc
+ */
+public function init()
+{
+    $event = $this->getEvent();
+
+    $event->bind($this);// bind default events
+    $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_WITH_PARAM, ['where' => ['user_id' => 1]]);
+    $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_WITH_MODELS, ['models' => ['user']]);
+    $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_CLOSURE, function () {
+        return [
+            'test' => 'Test variable',
+        ];
+    });
+
+    parent::init();
+}
+
 ```
 
-You can then access the application through the following URL:
+1) Самый простой способ подключение на дефолтные события (которые объявленый в `Model`, `Component`, `ActiveRecord`) при этом в отправщик будет передана сама модель, а переменные в тексте заменены на значения.
 
-~~~
-http://localhost/basic/web/
-~~~
-
-
-### Install via Composer
-
-If you do not have [Composer](http://getcomposer.org/), you may install it by following the instructions
-at [getcomposer.org](http://getcomposer.org/doc/00-intro.md#installation-nix).
-
-You can then install this project template using the following command:
-
-~~~
-php composer.phar global require "fxp/composer-asset-plugin:~1.1.1"
-php composer.phar create-project --prefer-dist --stability=dev yiisoft/yii2-app-basic basic
-~~~
-
-Now you should be able to access the application through the following URL, assuming `basic` is the directory
-directly under the Web root.
-
-~~~
-http://localhost/basic/web/
-~~~
-
-
-CONFIGURATION
--------------
-
-### Database
-
-Edit the file `config/db.php` with real data, for example:
-
-```php
-return [
-    'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=localhost;dbname=yii2basic',
-    'username' => 'root',
-    'password' => '1234',
-    'charset' => 'utf8',
-];
+```
+$event->bind($this);// bind default events
 ```
 
-**NOTES:**
-- Yii won't create the database for you, this has to be done manually before you can access it.
-- Check and edit the other files in the `config/` directory to customize your application as required.
-- Refer to the README in the `tests` directory for information specific to basic application tests.
+2) Аналогично пункту выше, но с условием, что событие вызовется при выполнении условия. Например, когда статус нужен определенный. При добавлении события в админке будет предложено выбрать на какие дефолтные события вызывать.
+```
+$event->bind($this, static::EVENT_CUSTOM_SEND_USERS_WITH_PARAM, ['where' => ['user_id' => 1]]);
+```
+
+По сути это заменяет такой код:
+
+```
+public function afterSave($insert, $changedAttributes)
+{
+    parent::afterSave($insert, $changedAttributes);
+
+    if ($this->type == 1) {
+        $this->trigger(...);
+    }
+    
+}
+```
+
+3) Когда нужно чтобы в отправляемом сообщении указывались данные из нескольких связанных моделей. Допустим: вышла новая статья и надо указать автора. При выборе такого события в менеджере событий будут автоматом подгружены содели и указаны все возможные атрибуты. 
+
+```
+$event->bind($this, static::EVENT_CUSTOM_SEND_USERS_WITH_MODELS, ['models' => ['user']]);
+```
+
+4) И последний вариант, когда необходима свобода действий используем анонимную функцию.
+
+```
+$event->bind($this, static::EVENT_CUSTOM_SEND_USERS_CLOSURE, function () {
+        return [
+            'test' => 'Test variable',
+        ];
+    });
+```
