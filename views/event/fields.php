@@ -10,5 +10,6 @@ use yii\widgets\ListView;
 <?= ListView::widget([
     'dataProvider' => $dataProvider,
     'itemView' => '_field',
-    'summary' => 'Доступные поля:'
+    'summary' => 'Доступные поля:',
+    'emptyText' => ''
 ]); ?>

@@ -65,7 +65,7 @@ $config = [
                 'app\models\Article' => [
                     'EVENT_CUSTOM_SEND_USERS_OFF', 'EVENT_CUSTOM_SEND_USERS_OFF2'
                 ],
-                'app\models\User'
+                'app\models\Event', 'app\models\BrowserEvent',
             ],
             'modelEventClass' => 'app\models\Event',
         ]

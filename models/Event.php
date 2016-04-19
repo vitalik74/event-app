@@ -5,6 +5,7 @@ namespace app\models;
 use app\components\events\EventModelInterface;
 use Yii;
 use yii\db\ActiveRecord;
+use yii\helpers\Json;
 
 /**
  * This is the model class for table "event".
@@ -41,10 +42,36 @@ class Event extends ActiveRecord implements EventModelInterface
             [['text'], 'string'],
             [['name'], 'string', 'max' => 60],
             [['event'], 'string', 'max' => 100],
-            [['type', 'defaultEvent'], 'each', 'rule' => ['string']],
+            [['type', 'default_event'], 'each', 'rule' => ['string']],
             [['title'], 'string', 'max' => 255],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->type = Json::encode($this->type);
+            $this->default_event = Json::encode($this->default_event);
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+
+        $this->type = Json::decode($this->type);
+        $this->default_event = Json::decode($this->default_event);
     }
 
     /**
@@ -118,10 +145,5 @@ class Event extends ActiveRecord implements EventModelInterface
     public function getDefaultEventField()
     {
         return 'default_event';
-    }
-
-    public function getEventFieldRelation()
-    {
-        return $this->hasMany(EventField::className(), ['event_id' => 'id']);
     }
 }

@@ -7,6 +7,7 @@ use app\models\User;
 use Yii;
 use app\models\Event;
 use app\models\search\EventSearch;
+use yii\base\Model;
 use yii\data\ArrayDataProvider;
 use yii\helpers\ArrayHelper;
 use yii\web\Controller;
@@ -53,14 +54,9 @@ class EventController extends BaseController
     public function actionCreate()
     {
         $model = new Event();
-        $modelEventFields = new EventField();
 
-        if ($model->load(Yii::$app->request->post()) && $modelEventFields->load(\Yii::$app->request->post()) && $model->validate() && $modelEventFields->validate()) {
-            if ($model->save(false) && $modelEventFields->save(false)) {
-                $model->link('eventFieldRelation', $modelEventFields);
-
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
         }
 
         return $this->render('create', [
@@ -68,7 +64,7 @@ class EventController extends BaseController
             'users' => $this->getUsers(),
             'typeEvents' => $this->getTypeEvents(),
             'events' => $this->getEvents(),
-            'defaultEvent' => $this->getDefaultEvent()
+            'defaultEvent' => $this->getDefaultEvent(),
         ]);
     }
 

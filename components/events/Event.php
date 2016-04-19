@@ -10,6 +10,7 @@ use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\base\Model;
 use yii\base\Object;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 use yii\helpers\FileHelper;
@@ -169,16 +170,17 @@ class Event extends Object
                         'event' => $availableEvents[$key]
                     ]);
                     $class->on($event, [$this, 'create'], $data);
-                    $this->bindEventsWithRelatedModels($class, $event, $data);
                 }
+
+                $this->bindEventsWithRelatedModels($class, $event, $data);
             }
         }
     }
 
     protected function bindEventsWithRelatedModels($class, $event, $data)
     {
-        if (isset($data['models']) && !empty($data['models'])) {
-            $this->_eventsWithRelatedModels[$class . $this->classNameKeySeparator . $event][] = $data['models'];
+        if (!($data instanceof \Closure) && isset($data['models']) && !empty($data['models'])) {
+            $this->_eventsWithRelatedModels[get_class($class) . $this->classNameKeySeparator . $event] = $data['models'];
         }
     }
 
@@ -310,7 +312,7 @@ class Event extends Object
     protected function checkExecuteModels($class, $constant)
     {
         foreach ($this->executeModels as $key => $model) {
-            if ((is_array($model) && ArrayHelper::isIn($constant, $model))
+            if ((is_array($model) && $key == $class && ArrayHelper::isIn($constant, $model))
                 || (is_string($model) && $class == $model)) {
                 return false;
             }
@@ -411,33 +413,54 @@ class Event extends Object
 
         /** @var Model $model */
         $model = new $class();
-        $class = str_replace($this->modelsNamespace, '', $class);
+        $class = $this->replaceNamespace($class);
         $fields = [];
 
         if (!($model instanceof Model)) {
             return [];
         }
 
-        foreach ($model->rules() as $rule) {
-            if (is_array($rule[0])) {
-                foreach ($rule[0] as $value) {
-                    $fields[] = $class . $this->classNameKeySeparator . $value;
-                }
-            } elseif (is_string($rule[0])) {
-                $fields[] = $class . $this->classNameKeySeparator . $rule[0];
-            }
-        }
+        $this->getFieldsByAttributes($fields, $class, $model);
 
         // check in related model
         if (ArrayHelper::isIn($event, array_keys($this->_eventsWithRelatedModels))) {
             foreach ($this->_eventsWithRelatedModels[$event] as $relatedModel) {
                 $method = 'get' . ucfirst($relatedModel);
-                $relatedModel = new $relatedModel();
-                $model = $relatedModel->{$method};
-                $a=1;
+                $query = $model->{$method}();
+
+                if ($query instanceof ActiveQuery) {
+                    $model = new $query->modelClass();
+                    $this->getFieldsByAttributes($fields, $this->replaceNamespace($query->modelClass), $model);
+                }
             }
         }
 
         return array_unique($fields);
+    }
+
+    /**
+     * @param $class
+     * @return mixed
+     */
+    protected function replaceNamespace($class)
+    {
+        return str_replace($this->modelsNamespace, '', $class);
+    }
+
+    /**
+     * @param $fields
+     * @param $class
+     * @param Model $model
+     * @return array
+     */
+    protected function getFieldsByAttributes(&$fields, $class, Model $model)
+    {
+        $attributes = $model->getAttributes();
+
+        if (!empty($attributes)) {
+            foreach (array_keys($attributes) as $attribute) {
+                $fields[] = $class . $this->classNameKeySeparator . $attribute;
+            }
+        }
     }
 }
