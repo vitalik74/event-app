@@ -51,6 +51,7 @@ class Article extends ActiveRecord
         $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_CLOSURE, function () {
             return [
                 'test' => 'Test variable',
+                'test2' => rand(1, 1000)
             ];
         });
 
@@ -85,7 +86,7 @@ class Article extends ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'text', 'created_at', 'updated_at', 'user_id'], 'required'],
+            [['name', 'text', 'created_at', 'updated_at', 'user_id', 'short_text'], 'required'],
             [['text', 'short_text'], 'string'],
             [['created_at', 'updated_at', 'user_id'], 'integer'],
             [['name'], 'string', 'max' => 255],

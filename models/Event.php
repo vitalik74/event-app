@@ -37,7 +37,7 @@ class Event extends ActiveRecord implements EventModelInterface
     public function rules()
     {
         return [
-            [['name', 'event', 'title', 'type'], 'required'],
+            [['name', 'event', 'title', 'type', 'text'], 'required'],
             [['user_id'], 'integer'],
             [['text'], 'string'],
             [['name'], 'string', 'max' => 60],

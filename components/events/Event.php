@@ -96,6 +96,11 @@ class Event extends Object
      */
     private $_eventsWithRelatedModels = [];
 
+    /**
+     * @var array
+     */
+    private $_eventsWithClosure = [];
+
 
     /**
      * @inheritdoc
@@ -156,31 +161,60 @@ class Event extends Object
                     $this->bind($class, $value, $data);
                 }
             } else {
-                $availableEvents = ArrayHelper::map($this->findEventModels(), $this->_modelEvent->getEventField(), function ($model) {
+                $availableModelEvents = ArrayHelper::map($this->findEventModels(), $this->_modelEvent->getEventField(), function ($model) {
                     return $model;
                 });
                 $key = get_class($class) . $this->classNameKeySeparator . $event;
 
-                if (ArrayHelper::isIn($key, array_keys($availableEvents))) {
-                    $data = ArrayHelper::merge([
-                        'type' => $availableEvents[$key]->{$this->_modelEvent->getTypeField()}
-                    ], [
-                        'data' => $data,
-                        'sender' => $class,
-                        'event' => $availableEvents[$key]
-                    ]);
-                    $class->on($event, [$this, 'create'], $data);
+                if (ArrayHelper::isIn($key, array_keys($availableModelEvents))) {
+                    $types = $availableModelEvents[$key]->{$this->_modelEvent->getTypeField()};
+                    $defaultEvents = $availableModelEvents[$key]->{$this->_modelEvent->getDefaultEventField()};
+
+                    if (empty($defaultEvents)) {
+                        $defaultEvents = [$event];
+                    }
+
+                    foreach ($types as $type) { // multiply types
+                        foreach ($defaultEvents as $event) {
+                            $data = ArrayHelper::merge([
+                                'type' => $type
+                            ], [
+                                'data' => $data,
+                                'sender' => $class,
+                                'event' => $availableModelEvents[$key]
+                            ]);
+                            $class->on($event, [$this, 'create'], $data);
+                        }
+                    }
                 }
 
-                $this->bindEventsWithRelatedModels($class, $event, $data);
+                $this->setEventsWithRelatedModels($class, $event, $data);
+                $this->setEventsWithClosure($class, $event, $data);
             }
         }
     }
 
-    protected function bindEventsWithRelatedModels($class, $event, $data)
+    /**
+     * @param $class
+     * @param $event
+     * @param $data
+     */
+    protected function setEventsWithRelatedModels($class, $event, $data)
     {
         if (!($data instanceof \Closure) && isset($data['models']) && !empty($data['models'])) {
             $this->_eventsWithRelatedModels[get_class($class) . $this->classNameKeySeparator . $event] = $data['models'];
+        }
+    }
+
+    /**
+     * @param $class
+     * @param $event
+     * @param $data
+     */
+    protected function setEventsWithClosure($class, $event, $data)
+    {
+        if ($data instanceof \Closure) {
+            $this->_eventsWithClosure[get_class($class) . $this->classNameKeySeparator . $event][] = $data();
         }
     }
 
@@ -250,8 +284,10 @@ class Event extends Object
             foreach ($fileModels as $file) {
                 $class = $namespace . '\\' . basename($file, $this->modelFileExtension);
 
-                $this->_eventsFromModels[$class][static::GROUP_EVENT_CUSTOM] = $this->getCustomEvents($class);
-                $this->_eventsFromModels[$class][static::GROUP_EVENT_DEFAULT] = $this->getDefaultEvents($class);
+                if ($this->checkExecuteModels($class)) {
+                    $this->_eventsFromModels[$class][static::GROUP_EVENT_CUSTOM] = $this->getCustomEvents($class);
+                    $this->_eventsFromModels[$class][static::GROUP_EVENT_DEFAULT] = $this->getDefaultEvents($class);
+                }
             }
         }
     }
@@ -294,26 +330,38 @@ class Event extends Object
             $reflection = new ReflectionClass($class);
 
             foreach ($reflection->getConstants() as $constant => $value) {
-                if (StringHelper::startsWith($constant, $startEventName) && $this->checkExecuteModels($class, $constant)) {
+                if (StringHelper::startsWith($constant, $startEventName) && $this->checkExecuteEvents($class, $constant)) {
                     $events[$constant] = $currentClass . $this->classNameKeySeparator . $value;
                 }
             }
         }
 
-        return array_flip($events);
+        $events = array_flip($events);
+        asort($events);
+
+        return $events;
     }
 
     /**
      * If
      * @param string $class
-     * @param string $constant
      * @return bool
      */
-    protected function checkExecuteModels($class, $constant)
+    protected function checkExecuteModels($class)
     {
         foreach ($this->executeModels as $key => $model) {
-            if ((is_array($model) && $key == $class && ArrayHelper::isIn($constant, $model))
-                || (is_string($model) && $class == $model)) {
+            if (is_string($model) && $class == $model) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function checkExecuteEvents($class, $constant)
+    {
+        foreach ($this->executeModels as $key => $model) {
+            if (is_array($model) && $key == $class && ArrayHelper::isIn($constant, $model)) {
                 return false;
             }
         }
@@ -431,6 +479,15 @@ class Event extends Object
                 if ($query instanceof ActiveQuery) {
                     $model = new $query->modelClass();
                     $this->getFieldsByAttributes($fields, $this->replaceNamespace($query->modelClass), $model);
+                }
+            }
+        }
+
+        // check in closure
+        if (ArrayHelper::isIn($event, array_keys($this->_eventsWithClosure))) {
+            foreach ($this->_eventsWithClosure[$event] as $attributes) {
+                foreach (array_keys($attributes) as $attribute) {
+                    $fields[] = '\Closure' . $this->classNameKeySeparator . $attribute;
                 }
             }
         }

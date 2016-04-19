@@ -1,15 +1,18 @@
 Yii 2 event-test-app
 ============================
-Буду рад услышать замечания, ошибки. Писать на tsibikov_vit@mail.ru.
+Времени затратил около 20 часов. Буду рад услышать замечания, ошибки. Писать на tsibikov_vit@mail.ru.
 
 
 Установка
 ===================
-
+1) Скачать
+2) Обновить композер
+3) Выполнить `yii migrate`
+4) Выполнить `yii rbac/init`
 
 Структура
 =====================
-Основной класс, который отвечает за все события это `app/components/events/Event`. Подключается как компонент к Yii. Имеет ряд настроек. Пример конфига:
+Основной класс, который отвечает за все события это `app/components/events/Event`. Подключается как компонент к Yii. Имеет ряд настроек. Если какие-то обязательные парамтры конфига отсутствует, то выдаст эксепшен `InvalidConfigException` не верной настройки конфига. Пример конфига:
 
 ```
 'event' => [
@@ -21,7 +24,7 @@ Yii 2 event-test-app
     'eventsNamespace' => 'app\events', // неймспейс классов отправки самих уведомлений
     'findModelsRecursive' => false, // искать ли в подпапках классы
     'startCustomEventName' => 'EVENT_CUSTOM', // начальное название констант, которые означают какое-то событие
-    'executeModels' => [ // не учитфываем эти модели, поддерживаетс формат 'model' => ['constant', 'constant']. 
+    'executeModels' => [ // не учитываем эти модели, поддерживается формат 'model' => ['constant', 'constant']. 
         'app\models\Article' => [
             'EVENT_CUSTOM_SEND_USERS_OFF', 'EVENT_CUSTOM_SEND_USERS_OFF2'
         ],
@@ -102,7 +105,7 @@ public function afterSave($insert, $changedAttributes)
 $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_WITH_MODELS, ['models' => ['user']]);
 ```
 
-4) И последний вариант, когда необходима свобода действий используем анонимную функцию.
+4) И последний вариант, когда необходима свобода действий, то используем анонимную функцию. Анонимная функция должна возвращать массив с переменными. Которые экстраполируются в сообщение.
 
 ```
 $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_CLOSURE, function () {
