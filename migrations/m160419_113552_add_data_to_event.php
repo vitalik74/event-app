@@ -12,29 +12,65 @@ class m160419_113552_add_data_to_event extends Migration
      */
     public function up()
     {
-        $this->execute('
-        INSERT INTO `event-app`.event (id, name, event, user_id, title, text, type, default_event) VALUES (\'\', \'Delault before insert\', \'app\\models\\Article||beforeInsert\', null, \'Статья {articleName} добавлена!\', \'Читайте нашу статью {articleName} прямо сейчас!
+        $values = [
+            [
+                'name' => 'Delault before insert',
+                'event' => 'app\models\Article||beforeInsert',
+                'user_id' => null,
+                'title' => 'Статья {articleName} добавлена!',
+                'text' => 'Читайте нашу статью {articleName} прямо сейчас!
 
 Вот краткий отрывок из неё:
-{articleShortText}\', \'["email","browser"]\', \'""\');
-INSERT INTO `event-app`.event (id, name, event, user_id, title, text, type, default_event) VALUES (\'\', \'Custom event with param\', \'app\\models\\Article||sendUsersParam\', null, \'Custom event with param {articleName}\', \'Поля:
+{articleShortText}',
+                'type' => '["email","browser"]',
+                'default_event' => ''
+            ],
+            [
+                'name' => 'Custom event with param',
+                'event' => 'app\models\Article||sendUsersParam',
+                'user_id' => null,
+                'title' => 'Custom event with param {articleName}',
+                'text' => 'Поля:
 
 {articleId}
 {articleName}
-{articleText}\', \'["email","browser"]\', \'["yii\\\\db\\\\ActiveRecord||afterInsert","yii\\\\db\\\\ActiveRecord||afterUpdate"]\');
-INSERT INTO `event-app`.event (id, name, event, user_id, title, text, type, default_event) VALUES (\'\', \'Costom with related models\', \'app\\models\\Article||sendUsersModels\', null, \'Событие с моделями {articleName} {userUsername}\', \'Доступные поля:
+{articleText}',
+                'type' => '["email","browser"]',
+                'default_event' => '["yii\\\\db\\\\ActiveRecord||afterInsert","yii\\\\db\\\\ActiveRecord||afterUpdate"]'
+            ],
+            [
+                'name' => 'Custom with related models',
+                'event' => 'app\models\Article||sendUsersModels',
+                'user_id' => null,
+                'title' => 'Событие с моделями {articleName} {userUsername}',
+                'text' => 'Доступные поля:
 {articleId}
 {articleName}
 {articleText}
 {userId}
-{userUsername}\', \'["email","browser"]\', \'["yii\\\\db\\\\ActiveRecord||beforeInsert"]\');
-INSERT INTO `event-app`.event (id, name, event, user_id, title, text, type, default_event) VALUES (\'\', \'Event with closure\', \'app\\models\\Article||sendUsersClosure\', null, \'{closureTest} начали!\', \'Доступные поля:
+{userUsername}',
+                'type' => '["email","browser"]',
+                'default_event' => '["yii\\\\db\\\\ActiveRecord||beforeInsert"]'
+            ],
+            [
+                'name' => 'Event with closure',
+                'event' => 'app\models\Article||sendUsersClosure',
+                'user_id' => null,
+                'title' => '{closureTest} начали!',
+                'text' => 'Доступные поля:
 {articleName}
 {articleText}
 {closureTest}
-{closureTest2}\', \'["email"]\', \'["yii\\\\db\\\\ActiveRecord||afterInsert"]\');
+{closureTest2}',
+                'type' => '["email"]',
+                'default_event' => '["yii\\\\db\\\\ActiveRecord||afterInsert"]'
+            ],
+        ];
 
-        ');
+
+        foreach ($values as $value) {
+            $this->insert('{{%event}}', $value);
+        }
     }
 
     /**
@@ -42,5 +78,6 @@ INSERT INTO `event-app`.event (id, name, event, user_id, title, text, type, defa
      */
     public function down()
     {
+        $this->truncateTable('{{%event}}');
     }
 }

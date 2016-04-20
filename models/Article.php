@@ -4,6 +4,7 @@ namespace app\models;
 
 
 use Yii;
+use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
 /**
@@ -67,17 +68,11 @@ class Article extends ActiveRecord
         return Yii::$app->event;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function afterSave($insert, $changedAttributes)
+    public function beforeValidate()
     {
-        parent::afterSave($insert, $changedAttributes);
+        $this->user_id = Yii::$app->user->id;
 
-        $event = $this->getEvent();
-        $event->bind($this, static::EVENT_CUSTOM_SEND_USERS_CLOSURE2, function () {
-
-        });
+        return parent::beforeValidate();
     }
 
     /**
@@ -86,7 +81,7 @@ class Article extends ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'text', 'created_at', 'updated_at', 'user_id', 'short_text'], 'required'],
+            [['name', 'text', 'short_text', 'user_id'], 'required'],
             [['text', 'short_text'], 'string'],
             [['created_at', 'updated_at', 'user_id'], 'integer'],
             [['name'], 'string', 'max' => 255],
@@ -116,5 +111,21 @@ class Article extends ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => TimestampBehavior::className(),
+                'attributes' => [
+                    ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
+                    ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
+                ],
+            ],
+        ];
     }
 }

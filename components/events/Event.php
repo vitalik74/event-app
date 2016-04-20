@@ -139,12 +139,7 @@ class Event extends Object
     {
         return $this->_eventsFromModels;
     }
-//+ дефолтные ивенты (из AR),
-//+ ивенты той же модели но по условию (если status=0),
-// ивенты которые завязаны на несколько моделей (модели просто с перечислением) + дефолтный ивент из AR,
-// ивенты которые через анонимную функцию + дефолтный ивент из AR,
-// отключение какие-от событий в классе
-//
+
     /**
      * Bind event
      * @param Component $class
@@ -241,14 +236,11 @@ class Event extends Object
 
         if ($data['type'] !== null) {
             if ($data['data'] instanceof \Closure) {
-                $data = $data['data']();
-                //SenderFactory::create($sender, $event, $eventClass, $data);
+                $data = $data['data'];
             } elseif (!empty($data['data']['where']) && $this->checkCondition($sender, $data['data']['where'])) {
                 $data = '';
-                //SenderFactory::create($sender, $event, $eventClass);
             } else {
                 $data = $data['data'];
-                //SenderFactory::create($sender, $event, $eventClass, $data['data']);
             }
 
             SenderFactory::create($sender, $event, $eventClass, $data);

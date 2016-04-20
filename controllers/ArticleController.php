@@ -7,6 +7,7 @@ use Yii;
 use app\models\Article;
 use app\models\search\ArticleSearch;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;

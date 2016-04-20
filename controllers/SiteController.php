@@ -9,7 +9,6 @@ use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\form\LoginForm;
-use app\models\form\ContactForm;
 
 class SiteController extends BaseController
 {
@@ -73,5 +72,20 @@ class SiteController extends BaseController
     public function actionAbout()
     {
         return $this->render('about');
+    }
+
+    public function actionRegistration()
+    {
+        $model = new RegistrationForm();
+
+        if ($model->load(\Yii::$app->request->post())) {
+            if ($user = $model->save()) {
+                if (Yii::$app->getUser()->login($user)) {
+                    return $this->redirect(['browser-event/index']);
+                }
+            }
+        }
+
+        return $this->render('registration', ['model' => $model]);
     }
 }

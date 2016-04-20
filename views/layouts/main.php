@@ -40,8 +40,8 @@ AppAsset::register($this);
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
             ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'Article', 'url' => ['/article/index']/*, 'visible' => $authManager->checkAccess(Yii::$app->user->id, User::ROLE_ADMINISTRATOR)*/],
-            ['label' => 'Event', 'url' => ['/event/index']/*, 'visible' => $authManager->checkAccess(Yii::$app->user->id, User::ROLE_ADMINISTRATOR)*/],
+            ['label' => 'Article', 'url' => ['/article/index'], 'visible' => $authManager->checkAccess(Yii::$app->user->id, User::ROLE_ADMINISTRATOR)],
+            ['label' => 'Event', 'url' => ['/event/index'], 'visible' => $authManager->checkAccess(Yii::$app->user->id, User::ROLE_ADMINISTRATOR)],
             Yii::$app->user->isGuest ? (
                 ['label' => 'Login', 'url' => ['/site/login']]
             ) : (

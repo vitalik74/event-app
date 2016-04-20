@@ -8,8 +8,10 @@ use app\components\events\EventModelInterface;
 
 use Yii;
 use yii\base\Component;
+use yii\base\Model;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Inflector;
 
 class BaseSender extends Component
 {
@@ -23,7 +25,7 @@ class BaseSender extends Component
 
     /**
      * Model from calling event
-     * @var
+     * @var Model
      */
     public $sender;
 
@@ -98,10 +100,51 @@ class BaseSender extends Component
 
     /**
      * @param array $variables
+     * @return array
      */
     protected function getValueFromModel(array $variables)
     {
         // тут не только из модели сендера, но и зависимых моделей
+        $values = $res = [];
+
+        if ($this->data instanceof \Closure) {
+            $closure = $this->data;
+            $values = $closure();
+        } elseif (!empty($data['models'])) {
+            foreach ($data['models'] as $model) {
+                $relatedModel = $this->sender->{$model};
+
+                if ($relatedModel !== null) {
+                    $values[$model] = $relatedModel->getAttributes();
+                }
+            }
+
+            $values[get_class($this->sender)] = $this->sender->getAttributes();
+        } else {
+            $this->getAttributes($values, $this->sender);
+        }
+
+        foreach ($variables as $variable) {
+            if (is_array($values) && isset($values[$variable])) {
+                $res[] = $values[$variable];
+            }
+        }
+
+        return $res;
+    }
+
+    /**
+     * @param $values
+     * @param Model $model
+     */
+    protected function getAttributes(&$values, Model $model)
+    {
+        foreach ($model->getAttributes() as $attribute => $value) {
+            $className = explode('\\', get_class($model));
+            $className = $className[count($className) - 1];
+
+            $values['{' . lcfirst(Inflector::camelize($className . '_'. $attribute)) . '}'] = $value;
+        }
     }
 
     /**

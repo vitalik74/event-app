@@ -66,12 +66,23 @@ class Event extends ActiveRecord implements EventModelInterface
     /**
      * @inheritdoc
      */
-    public function afterSave($insert, $changedAttributes)
+    public function afterFind()
     {
-        parent::afterSave($insert, $changedAttributes);
-
         $this->type = Json::decode($this->type);
         $this->default_event = Json::decode($this->default_event);
+
+        parent::afterFind();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterSave($insert, $changedAttributes)
+    {
+        $this->type = Json::decode($this->type);
+        $this->default_event = Json::decode($this->default_event);
+
+        parent::afterSave($insert, $changedAttributes);
     }
 
     /**
