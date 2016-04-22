@@ -2,8 +2,6 @@ Yii 2 event-test-app
 ============================
 Времени затратил около 27 часов. Буду рад услышать замечания, ошибки. Писать на tsibikov_vit@mail.ru. Тестировал на php 5.5, mysql 5.6.
 
-
-
 Установка
 ===================
 1) `php composer.phar create-project --prefer-dist --stability=dev vitalik74/event-app basic`

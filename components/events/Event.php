@@ -234,10 +234,10 @@ class Event extends Object
         $eventClass = $this->eventsNamespace . '\\' . ucfirst($data['type']);
         $event = $data['event'];
 
-        if ($data['type'] !== null) {
+        if ($data['type'] !== null && $this->checkUserCondition($event)) {
             if ($data['data'] instanceof \Closure) {
                 $data = $data['data'];
-            } elseif (!empty($data['data']['where']) && $this->checkCondition($sender, $data['data']['where'])) {
+            } elseif (!empty($data['data']['where']) && $this->checkWhereCondition($sender, $data['data']['where'])) {
                 $data = null;
             } else {
                 $data = $data['data'];
@@ -369,7 +369,7 @@ class Event extends Object
      * @param array $where
      * @return bool
      */
-    protected function checkCondition(Component $sender, array $where)
+    protected function checkWhereCondition(Component $sender, array $where)
     {
         foreach ($where as $attribute => $value) {
             if ($sender->{$attribute} !== $value) {
@@ -378,6 +378,21 @@ class Event extends Object
         }
 
         return false;
+    }
+
+    /**
+     * @param EventModelInterface $event
+     * @return bool
+     */
+    protected function checkUserCondition(EventModelInterface $event)
+    {
+        $userId = $event->getUserIdField();
+
+        if (!empty($userId) && $userId !== Yii::$app->user->id) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
