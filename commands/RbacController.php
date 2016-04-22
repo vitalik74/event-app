@@ -12,6 +12,12 @@ class RbacController extends Controller
     {
         $auth = Yii::$app->authManager;
         $users = User::findAll(['status' => User::STATUS_ACTIVE]);
+
+        if (empty($users)) {
+            $this->createUser('admin', User::ROLE_ADMINISTRATOR);
+            $this->createUser('user', User::ROLE_USER);
+        }
+
         $roles = [];
 
         foreach ($users as $user) {
@@ -27,17 +33,40 @@ class RbacController extends Controller
         $auth->add($admin);
         $auth->addChild($admin, $user);
 
-        if (!empty($roles)) {
-            foreach ($roles as $userId => $role) {
-                foreach ($role as $roleValue) {
-                    $auth->assign($roleValue, $userId);
-                }
+        foreach ($roles as $userId => $role) {
+            foreach ($role as $roleValue) {
+                $auth->assign($roleValue, $userId);
             }
-        } else {
-            $auth->assign($admin, 1);
-            $auth->assign($user, 2);
         }
 
+
         Console::output('Success! RBAC roles has been added.');
+    }
+
+    protected function createUser($username, $typeRole)
+    {
+        $user = new User([
+            'username' => $username,
+            'status' => User::STATUS_ACTIVE,
+            'email' => $username . '@' . Yii::$app->params['domain']
+        ]);
+
+        $user->setPassword('123456');
+        $user->generateAuthKey();
+        $user->save(false);
+
+        $this->assign($user, $typeRole);
+    }
+
+    protected function assign(User $user, $typeRole)
+    {
+        $auth = Yii::$app->authManager;
+        $role = $auth->getRole($typeRole);
+
+        if ($role !== null) {
+            // удаляем какие были роли
+            $auth->revokeAll($user->id);
+            $auth->assign($role, $user->id);
+        }
     }
 } 
