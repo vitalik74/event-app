@@ -103,25 +103,24 @@ class BaseSender extends Component
      */
     protected function getValueFromModel(array $variables)
     {
-        // тут не только из модели сендера, но и зависимых моделей
         $values = $res = [];
 
         if ($this->data instanceof \Closure) {
             $closure = $this->data;
-            $values = $closure();
-        } elseif (!empty($data['models'])) {
-            foreach ($data['models'] as $model) {
+            $valuesFromClosure = $closure();
+            $this->getAttributesFromClosure($values, $valuesFromClosure);
+        } elseif (!empty($this->data['models'])) {
+            foreach ($this->data['models'] as $model) {
                 $relatedModel = $this->sender->{$model};
 
                 if ($relatedModel !== null) {
-                    $values[$model] = $relatedModel->getAttributes();
+                    $this->getAttributes($values, $relatedModel);
                 }
             }
-
-            $values[get_class($this->sender)] = $this->sender->getAttributes();
-        } else {
-            $this->getAttributes($values, $this->sender);
         }
+
+        // bind attributes from current model
+        $this->getAttributes($values, $this->sender);
 
         foreach ($variables as $variable) {
             if (is_array($values) && isset($values[$variable])) {
@@ -142,8 +141,30 @@ class BaseSender extends Component
             $className = explode('\\', get_class($model));
             $className = $className[count($className) - 1];
 
-            $values['{' . lcfirst(Inflector::camelize($className . '_'. $attribute)) . '}'] = $value;
+            $values[$this->getKeyFromAttribute($className, $attribute)] = $value;
         }
+    }
+
+    /**
+     * @param $values
+     * @param $valuesFromClosure
+     */
+    protected function getAttributesFromClosure(&$values, $valuesFromClosure)
+    {
+        foreach ($valuesFromClosure as $attribute => $value) {
+            $values[$this->getKeyFromAttribute('Closure', $attribute)] = $value;
+        }
+
+    }
+
+    /**
+     * @param $className
+     * @param $attribute
+     * @return string
+     */
+    protected function getKeyFromAttribute($className, $attribute)
+    {
+        return '{' . lcfirst(Inflector::camelize($className . '_'. $attribute)) . '}';
     }
 
     /**

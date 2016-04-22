@@ -170,7 +170,7 @@ class Event extends Object
                     }
 
                     foreach ($types as $type) { // multiply types
-                        foreach ($defaultEvents as $event) {
+                        foreach ($defaultEvents as $eventName) {
                             $dataToEvent = ArrayHelper::merge([
                                 'type' => $type
                             ], [
@@ -178,7 +178,7 @@ class Event extends Object
                                 'sender' => $class,
                                 'event' => $availableModelEvents[$key]
                             ]);
-                            $class->on($event, [$this, 'create'], $dataToEvent);
+                            $class->on($eventName, [$this, 'create'], $dataToEvent);
                         }
                     }
                 }

@@ -18,9 +18,9 @@ class m160419_113552_add_data_to_event extends Migration
                 'event' => 'app\models\Article||beforeInsert',
                 'user_id' => null,
                 'title' => 'Delault before insert - Статья {articleName} добавлена!',
-                'text' => 'Читайте нашу статью {articleName} прямо сейчас!
+                'text' => 'Читайте нашу статью {articleName} прямо сейчас!<br>
 
-Вот краткий отрывок из неё:
+Вот краткий отрывок из неё:<br>
 {articleShortText}',
                 'type' => '["email","browser"]',
                 'default_event' => ''
@@ -30,10 +30,10 @@ class m160419_113552_add_data_to_event extends Migration
                 'event' => 'app\models\Article||sendUsersParam',
                 'user_id' => null,
                 'title' => 'Custom event with param {articleName}',
-                'text' => 'Поля:
+                'text' => 'Поля:<br>
 
-{articleId}
-{articleName}
+{articleId}<br>
+{articleName}<br>
 {articleText}',
                 'type' => '["email","browser"]',
                 'default_event' => '["afterInsert","afterUpdate"]'
@@ -43,11 +43,11 @@ class m160419_113552_add_data_to_event extends Migration
                 'event' => 'app\models\Article||sendUsersModels',
                 'user_id' => null,
                 'title' => 'Custom with related models - Событие с моделями {articleName} {userUsername}',
-                'text' => 'Доступные поля:
-{articleId}
-{articleName}
-{articleText}
-{userId}
+                'text' => 'Доступные поля:<br>
+{articleId}<br>
+{articleName}<br>
+{articleText}<br>
+{userId}<br>
 {userUsername}',
                 'type' => '["email","browser"]',
                 'default_event' => '["afterInsert"]'
@@ -57,10 +57,10 @@ class m160419_113552_add_data_to_event extends Migration
                 'event' => 'app\models\Article||sendUsersClosure',
                 'user_id' => null,
                 'title' => 'Event with closure - {closureTest} начали!',
-                'text' => 'Доступные поля:
-{articleName}
-{articleText}
-{closureTest}
+                'text' => 'Доступные поля:<br>
+{articleName}<br>
+{articleText}<br>
+{closureTest}<br>
 {closureTest2}',
                 'type' => '["email","browser"]',
                 'default_event' => '["afterInsert"]'
