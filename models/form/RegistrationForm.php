@@ -4,6 +4,7 @@ namespace app\models\form;
 
 
 use app\models\User;
+use Yii;
 use yii\base\Model;
 
 class RegistrationForm extends Model
@@ -34,7 +35,15 @@ class RegistrationForm extends Model
             $user->setPassword($this->password);
             $user->generateAuthKey();
 
-            return $user->save() ? $user : null;
+            if ($user->save()) {
+                $auth = Yii::$app->authManager;
+                $role = $auth->getRole(User::ROLE_USER);
+                $auth->assign($role, $user->id);
+
+                return $user;
+            }
+
+            return null;
         }
 
         return false;

@@ -11,20 +11,6 @@ class RbacController extends Controller
     public function actionInit()
     {
         $auth = Yii::$app->authManager;
-        $users = User::findAll(['status' => User::STATUS_ACTIVE]);
-
-        if (empty($users)) {
-            $this->createUser('admin', User::ROLE_ADMINISTRATOR);
-            $this->createUser('user', User::ROLE_USER);
-        }
-
-        $roles = [];
-
-        foreach ($users as $user) {
-            $roles[$user->id] = $auth->getRolesByUser($user->id);
-        }
-
-        $auth->removeAll();
 
         $user = $auth->createRole(User::ROLE_USER);
         $auth->add($user);
@@ -33,12 +19,8 @@ class RbacController extends Controller
         $auth->add($admin);
         $auth->addChild($admin, $user);
 
-        foreach ($roles as $userId => $role) {
-            foreach ($role as $roleValue) {
-                $auth->assign($roleValue, $userId);
-            }
-        }
-
+        $this->createUser('admin', User::ROLE_ADMINISTRATOR);
+        $this->createUser('user', User::ROLE_USER);
 
         Console::output('Success! RBAC roles has been added.');
     }
