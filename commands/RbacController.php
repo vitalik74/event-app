@@ -27,17 +27,17 @@ class RbacController extends Controller
         $auth->add($admin);
         $auth->addChild($admin, $user);
 
-        foreach ($roles as $userId => $role) {
-            foreach ($role as $roleValue) {
-                $auth->assign($roleValue, $userId);
+        if (!empty($roles)) {
+            foreach ($roles as $userId => $role) {
+                foreach ($role as $roleValue) {
+                    $auth->assign($roleValue, $userId);
+                }
             }
+        } else {
+            $auth->assign($admin, 1);
+            $auth->assign($user, 2);
         }
 
         Console::output('Success! RBAC roles has been added.');
-    }
-
-    public function createUsers()
-    {
-
     }
 } 

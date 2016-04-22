@@ -7,9 +7,11 @@ Yii 2 event-test-app
 Установка
 ===================
 1) `php composer.phar create-project --prefer-dist --stability=dev vitalik74/event-app basic`
-2) Выполнить `yii migrate`
-3) Выполнить `yii rbac/init`
-4) adminTest 123456 логин/пароль в админку под админом.
+2) Прописать БД в конфиге
+3) Выполнить `yii migrate --migrationPath=@yii/rbac/migrations` 
+4) Выполнить `yii migrate`
+5) Выполнить `yii rbac/init`
+6) admin 123456 логин/пароль в админку под админом.
 
 Структура
 =====================
