@@ -171,14 +171,14 @@ class Event extends Object
 
                     foreach ($types as $type) { // multiply types
                         foreach ($defaultEvents as $event) {
-                            $data = ArrayHelper::merge([
+                            $dataToEvent = ArrayHelper::merge([
                                 'type' => $type
                             ], [
                                 'data' => $data,
                                 'sender' => $class,
                                 'event' => $availableModelEvents[$key]
                             ]);
-                            $class->on($event, [$this, 'create'], $data);
+                            $class->on($event, [$this, 'create'], $dataToEvent);
                         }
                     }
                 }
@@ -238,12 +238,14 @@ class Event extends Object
             if ($data['data'] instanceof \Closure) {
                 $data = $data['data'];
             } elseif (!empty($data['data']['where']) && $this->checkCondition($sender, $data['data']['where'])) {
-                $data = '';
+                $data = null;
             } else {
                 $data = $data['data'];
             }
 
-            SenderFactory::create($sender, $event, $eventClass, $data);
+            if (!empty($data)) {
+                SenderFactory::create($sender, $event, $eventClass, $data);
+            }
         }
     }
 
@@ -287,16 +289,17 @@ class Event extends Object
     /**
      * Find Yii2 events in parent, implements class
      * @param $class
+     * @param bool $noClassNameInKeys
      * @return array
      */
-    public function getDefaultEvents($class)
+    public function getDefaultEvents($class, $noClassNameInKeys = false)
     {
         $classes = ArrayHelper::merge(
             class_parents($class, true),
             class_implements($class, true)
         );
 
-        return $this->events($classes, $class, $this->startDefaultEventName);
+        return $this->events($classes, $noClassNameInKeys ? null : $class, $this->startDefaultEventName);
     }
 
     /**
@@ -310,8 +313,8 @@ class Event extends Object
 
     /**
      * @param array $classes
-     * @param $currentClass
-     * @param $startEventName
+     * @param string|null $currentClass
+     * @param string $startEventName
      * @return array
      */
     protected function events(array $classes, $currentClass, $startEventName)
@@ -323,7 +326,7 @@ class Event extends Object
 
             foreach ($reflection->getConstants() as $constant => $value) {
                 if (StringHelper::startsWith($constant, $startEventName) && $this->checkExecuteEvents($class, $constant)) {
-                    $events[$constant] = $currentClass . $this->classNameKeySeparator . $value;
+                    $events[$constant] = ($currentClass == null ? '' : $currentClass . $this->classNameKeySeparator) . $value;
                 }
             }
         }
@@ -370,11 +373,11 @@ class Event extends Object
     {
         foreach ($where as $attribute => $value) {
             if ($sender->{$attribute} !== $value) {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     /**

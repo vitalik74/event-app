@@ -157,7 +157,7 @@ class EventController extends BaseController
      */
     protected function getDefaultEvent()
     {
-        return $this->getEvent()->getDefaultEvents('yii\db\ActiveRecord');
+        return $this->getEvent()->getDefaultEvents('yii\db\ActiveRecord', true);
     }
 
     public function actionGetFields($event)

@@ -48,7 +48,6 @@ class BaseSender extends Component
      */
     public function sendError(\Exception $e)
     {
-        $this->error = $e;
         // send error to email or some else
         Yii::$app->mailer->compose()
             ->setFrom(Yii::$app->params['fromEmail'])

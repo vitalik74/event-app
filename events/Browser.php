@@ -8,7 +8,6 @@ use app\models\BrowserEvent;
 
 class Browser extends BaseSender implements SenderInterface
 {
-
     /**
      * Send event to sms, browser or some else
      * @return mixed

@@ -9,7 +9,6 @@ use Yii;
 
 class Email extends BaseSender implements SenderInterface
 {
-
     /**
      * Send event to sms, browser or some else
      * @return mixed
@@ -17,11 +16,6 @@ class Email extends BaseSender implements SenderInterface
     public function send()
     {
         try {
-            $title = $this->replaceTitle('id статьи {articleId}
-
-
-короткий текст статьи {articleShortText}');
-
             Yii::$app->mailer->compose()
                 ->setFrom(Yii::$app->params['fromEmail'])
                 ->setTo(Yii::$app->params['adminEmail'])

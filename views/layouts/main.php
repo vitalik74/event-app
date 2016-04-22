@@ -40,6 +40,7 @@ AppAsset::register($this);
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
             ['label' => 'Home', 'url' => ['/site/index']],
+            ['label' => 'Browser events', 'url' => ['/browser-event/index'], 'visible' => !Yii::$app->user->isGuest],
             ['label' => 'Article', 'url' => ['/article/index'], 'visible' => $authManager->checkAccess(Yii::$app->user->id, User::ROLE_ADMINISTRATOR)],
             ['label' => 'Event', 'url' => ['/event/index'], 'visible' => $authManager->checkAccess(Yii::$app->user->id, User::ROLE_ADMINISTRATOR)],
             Yii::$app->user->isGuest ? (

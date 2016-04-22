@@ -17,7 +17,7 @@ class m160419_113552_add_data_to_event extends Migration
                 'name' => 'Delault before insert',
                 'event' => 'app\models\Article||beforeInsert',
                 'user_id' => null,
-                'title' => 'Статья {articleName} добавлена!',
+                'title' => 'Delault before insert - Статья {articleName} добавлена!',
                 'text' => 'Читайте нашу статью {articleName} прямо сейчас!
 
 Вот краткий отрывок из неё:
@@ -36,13 +36,13 @@ class m160419_113552_add_data_to_event extends Migration
 {articleName}
 {articleText}',
                 'type' => '["email","browser"]',
-                'default_event' => '["yii\\\\db\\\\ActiveRecord||afterInsert","yii\\\\db\\\\ActiveRecord||afterUpdate"]'
+                'default_event' => '["afterInsert","afterUpdate"]'
             ],
             [
                 'name' => 'Custom with related models',
                 'event' => 'app\models\Article||sendUsersModels',
                 'user_id' => null,
-                'title' => 'Событие с моделями {articleName} {userUsername}',
+                'title' => 'Custom with related models - Событие с моделями {articleName} {userUsername}',
                 'text' => 'Доступные поля:
 {articleId}
 {articleName}
@@ -50,20 +50,20 @@ class m160419_113552_add_data_to_event extends Migration
 {userId}
 {userUsername}',
                 'type' => '["email","browser"]',
-                'default_event' => '["yii\\\\db\\\\ActiveRecord||beforeInsert"]'
+                'default_event' => '["afterInsert"]'
             ],
             [
                 'name' => 'Event with closure',
                 'event' => 'app\models\Article||sendUsersClosure',
                 'user_id' => null,
-                'title' => '{closureTest} начали!',
+                'title' => 'Event with closure - {closureTest} начали!',
                 'text' => 'Доступные поля:
 {articleName}
 {articleText}
 {closureTest}
 {closureTest2}',
-                'type' => '["email"]',
-                'default_event' => '["yii\\\\db\\\\ActiveRecord||afterInsert"]'
+                'type' => '["email","browser"]',
+                'default_event' => '["afterInsert"]'
             ],
         ];
 
