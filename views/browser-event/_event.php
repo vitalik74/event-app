@@ -29,7 +29,7 @@ $this->registerJs($js);
     <strong><?= Html::encode($model->title) ?></strong><br>
 
     <?= $model->text ?> <br>
-    <?= Yii::$app->formatter->asDate($model->created_at) ?> <br>
+    <?= Yii::$app->formatter->asDate($model->created_at, 'php:d.m.Y') ?> <br>
 
     <?php if (empty($model->viewed)): ?>
         <?= Html::button('Read', ['class' => 'btn btn-success btn-read', 'id' => $model->id]) ?>

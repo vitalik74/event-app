@@ -38,7 +38,7 @@ class BrowserEventController extends BaseController
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => BrowserEvent::find(),
+            'query' => BrowserEvent::find()->where(['to_user_id' => Yii::$app->user->id]),
             'pagination' => [
                 'pageSize' => 5,
             ],

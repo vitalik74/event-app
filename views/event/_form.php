@@ -43,7 +43,7 @@ $this->registerJs($js);
 
     <?= $form->field($model, 'event')->dropDownList($events, ['prompt' => 'Выберите']) ?>
 
-    <?= $form->field($model, 'default_event[]', ['options' => ['class' => 'default-event']])->dropDownList($defaultEvent, ['multiple' => 'multiple', 'size' => '10']) ?>
+    <?= $form->field($model, 'default_event', ['options' => ['class' => 'default-event', 'style' => !empty($model->default_event) ? 'display:block;' : '']])->dropDownList($defaultEvent, ['multiple' => 'multiple', 'size' => '10']) ?>
 
     <?= $form->field($model, 'user_id')->dropDownList($users, ['prompt' => 'Всем']) ?>
 
@@ -54,7 +54,7 @@ $this->registerJs($js);
 
     <?= $form->field($model, 'text')->textarea(['rows' => 6]) ?>
 
-    <?= $form->field($model, 'type[]')->dropDownList($typeEvents, ['prompt' => 'Выберите', 'multiple' => 'multiple', 'size' => '3']) ?>
+    <?= $form->field($model, 'type')->dropDownList($typeEvents, ['multiple' => 'multiple', 'size' => '3']) ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

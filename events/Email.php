@@ -5,6 +5,7 @@ namespace app\events;
 
 use app\components\events\sender\BaseSender;
 use app\components\events\sender\SenderInterface;
+use app\models\User;
 use Yii;
 
 class Email extends BaseSender implements SenderInterface
@@ -16,9 +17,12 @@ class Email extends BaseSender implements SenderInterface
     public function send()
     {
         try {
+            /** @var User $user */
+            $user = $this->user;
+
             Yii::$app->mailer->compose()
                 ->setFrom(Yii::$app->params['fromEmail'])
-                ->setTo(Yii::$app->params['adminEmail'])
+                ->setTo($user->email)
                 ->setSubject($this->getTitle())
                 ->setHtmlBody($this->getText())
                 ->send();

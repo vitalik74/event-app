@@ -9,6 +9,7 @@ use ReflectionClass;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\base\Object;
+use yii\web\IdentityInterface;
 
 class SenderFactory extends Object
 {
@@ -16,10 +17,11 @@ class SenderFactory extends Object
      * @param Component $sender
      * @param EventModelInterface $eventModel
      * @param $eventClass
+     * @param IdentityInterface $user
      * @param null $data
      * @throws InvalidConfigException
      */
-    public static function create(Component $sender, EventModelInterface $eventModel, $eventClass, $data = null)
+    public static function create(Component $sender, EventModelInterface $eventModel, $eventClass, IdentityInterface $user, $data = null)
     {
         $reflection = new ReflectionClass($eventClass);
 
@@ -32,7 +34,8 @@ class SenderFactory extends Object
             'name' => strtolower($reflection->getName()),
             'sender' => $sender,
             'data' => $data,
-            'eventModel' => $eventModel
+            'eventModel' => $eventModel,
+            'user' => $user
         ]);
         $sender->send();
     }

@@ -232,9 +232,17 @@ class Event extends Object
         $data = $event->data;
         $sender = $data['sender'];
         $eventClass = $this->eventsNamespace . '\\' . ucfirst($data['type']);
-        $event = $data['event'];
+        $eventModel = $data['event'];
+        $userClass = Yii::$app->user->identityClass;
+        $userId = $eventModel->{$this->_modelEvent->getUserIdField()};
 
-        if ($data['type'] !== null && $this->checkUserCondition($event)) {
+        if (empty($userId)) {
+            $users = $userClass::find()->all();
+        } else {
+            $users = $userClass::findAll(['id' => $userId]);
+        }
+
+        if ($data['type'] !== null) {
             if ($data['data'] instanceof \Closure) {
                 $data = $data['data'];
             } elseif (!empty($data['data']['where']) && $this->checkWhereCondition($sender, $data['data']['where'])) {
@@ -244,7 +252,9 @@ class Event extends Object
             }
 
             if (!empty($data)) {
-                SenderFactory::create($sender, $event, $eventClass, $data);
+                foreach ($users as $user) {
+                    SenderFactory::create($sender, $eventModel, $eventClass, $user, $data);
+                }
             }
         }
     }
@@ -378,21 +388,6 @@ class Event extends Object
         }
 
         return false;
-    }
-
-    /**
-     * @param EventModelInterface $event
-     * @return bool
-     */
-    protected function checkUserCondition(EventModelInterface $event)
-    {
-        $userId = $event->getUserIdField();
-
-        if (!empty($userId) && $userId !== Yii::$app->user->id) {
-            return false;
-        }
-
-        return true;
     }
 
     /**

@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use yii\db\Expression;
 
 /**
  * This is the model class for table "browser_event".
@@ -37,8 +38,7 @@ class BrowserEvent extends ActiveRecord
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => [],
                 ],
-                // if you're using datetime instead of UNIX timestamp:
-                // 'value' => new Expression('NOW()'),
+                'value' => new Expression('NOW()'),
             ],
         ];
     }

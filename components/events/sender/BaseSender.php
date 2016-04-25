@@ -12,6 +12,7 @@ use yii\base\Model;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Inflector;
+use yii\web\IdentityInterface;
 
 class BaseSender extends Component
 {
@@ -40,6 +41,12 @@ class BaseSender extends Component
      * @var
      */
     public $name;
+
+    /**
+     * User model
+     * @var ActiveRecord|IdentityInterface
+     */
+    public $user;
 
 
     /**

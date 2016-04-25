@@ -18,7 +18,8 @@ class Browser extends BaseSender implements SenderInterface
             $browser = new BrowserEvent([
                 'title' => $this->getTitle(),
                 'text' => $this->getText(),
-                'from_user_id' => 1
+                'from_user_id' => 1,
+                'to_user_id' => $this->user->id
             ]);
             $browser->save();
         } catch (\Exception $e) {
